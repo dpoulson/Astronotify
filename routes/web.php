@@ -39,4 +39,8 @@ Route::middleware([
     Route::get('/admin/users/{user}', \App\Livewire\AdminUserView::class)
         ->middleware('can:admin')
         ->name('admin.user.view');
+
+    Route::get('/admin/settings', \App\Livewire\AdminSettings::class)
+        ->middleware('can:admin')
+        ->name('admin.settings');
 });

@@ -16,8 +16,7 @@ class AdminDashboard extends Component
         $optimalConditions = WeatherCondition::where('is_optimal', true)->count();
         $uniqueSearchedLocations = WeatherCondition::distinct('location_id')->count('location_id');
         
-        $apiCallsRow = \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->first();
-        $totalApiCalls = $apiCallsRow ? $apiCallsRow->value : 0;
+        $totalApiCalls = (int) \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->value('value') ?? 0;
 
         // Group past 7 days for the chart
         $dates = collect(range(6, 0))->map(fn ($days) => today()->subDays($days)->toDateString());
@@ -30,7 +29,7 @@ class AdminDashboard extends Component
         $chartLocations = [];
 
         foreach ($dates as $date) {
-            $chartLabels[] = \Carbon\Carbon::parse($date)->format('M d');
+            $chartLabels[] = \Carbon\Carbon::parse((string) $date)->format('M d');
             $chartUsers[] = isset($userRegistrations[$date]) ? $userRegistrations[$date]->count() : 0;
             $chartLocations[] = isset($locationRegistrations[$date]) ? $locationRegistrations[$date]->count() : 0;
         }

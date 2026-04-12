@@ -1,4 +1,5 @@
 <x-mail::message>
+<?php /** @var \App\Models\Location $location */ ?>
 # Optimal Stargazing Conditions Approaching! 🌌
 
 Hello {{ $location->user->name }},

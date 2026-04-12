@@ -24,6 +24,9 @@
                         <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Admin') }}
                         </x-nav-link>
+                        <x-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
+                            {{ __('Settings') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -160,6 +163,9 @@
             @if(Auth::check() && Auth::user()->is_admin)
                 <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                     {{ __('Admin') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
+                    {{ __('Settings') }}
                 </x-responsive-nav-link>
             @endif
         </div>
