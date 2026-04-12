@@ -7,7 +7,7 @@
     </div>
 </x-slot>
 
-<div class="py-12 bg-slate-950 min-h-screen text-white">
+<div class="py-12 bg-slate-950 flex-grow text-white">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
         <div class="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 shadow-xl">
             <div class="space-y-4">
@@ -18,7 +18,8 @@
                                 <h4 class="text-white font-semibold text-lg">{{ $location->name }}</h4>
                                 <p class="text-slate-400 text-sm mt-1">Owned by: <span class="text-slate-300">{{ $location->user->name }}</span></p>
                             </div>
-                            <div class="text-right text-sm">
+                            <div class="text-right text-sm flex flex-col items-end">
+                                <button wire:click="deleteLocation({{ $location->id }})" wire:confirm="Are you sure you want to delete this location?" class="mb-2 px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40 text-xs font-bold transition">Delete</button>
                                 <p class="text-slate-400">Lat: <span class="text-slate-200">{{ $location->latitude }}</span></p>
                                 <p class="text-slate-400">Lon: <span class="text-slate-200">{{ $location->longitude }}</span></p>
                             </div>

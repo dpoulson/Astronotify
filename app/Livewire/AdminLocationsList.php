@@ -10,6 +10,14 @@ class AdminLocationsList extends Component
 {
     use WithPagination;
 
+    public function deleteLocation($id)
+    {
+        $location = Location::find($id);
+        if ($location) {
+            $location->delete();
+        }
+    }
+
     public function render()
     {
         return view('livewire.admin-locations-list', [

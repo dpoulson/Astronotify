@@ -21,6 +21,18 @@ class FetchWeatherData extends Command
         $locations = Location::query()->with('user')->where('is_active', true)->get();
 
         foreach ($locations as $location) {
+            $metric = \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->first();
+            if ($metric) {
+                \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->increment('value');
+            } else {
+                \Illuminate\Support\Facades\DB::table('system_metrics')->insert([
+                    'key' => 'weather_api_calls',
+                    'value' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
             $response = Http::get('https://api.open-meteo.com/v1/forecast', [
                 'latitude' => $location->latitude,
                 'longitude' => $location->longitude,
@@ -75,17 +87,23 @@ class FetchWeatherData extends Command
                     }
                 }
 
-                $existing = WeatherCondition::where('location_id', $location->id)->where('date', $dateStr)->first();
-                $alreadyWasOptimal = $existing ? $existing->is_optimal : false;
+                $condition = WeatherCondition::where('location_id', $location->id)->whereDate('date', $dateStr)->first();
+                $alreadyWasOptimal = $condition ? $condition->is_optimal : false;
 
                 // Save to DB to cut down on API calls
-                $condition = WeatherCondition::updateOrCreate([
-                    'location_id' => $location->id,
-                    'date' => $dateStr,
-                ], [
-                    'forecast_data' => ['note' => 'data trimmed for DB performance'],
-                    'is_optimal' => $isOptimal,
-                ]);
+                if ($condition) {
+                    $condition->update([
+                        'forecast_data' => ['note' => 'data trimmed for DB performance'],
+                        'is_optimal' => $isOptimal,
+                    ]);
+                } else {
+                    $condition = WeatherCondition::create([
+                        'location_id' => $location->id,
+                        'date' => Carbon::parse($dateStr),
+                        'forecast_data' => ['note' => 'data trimmed for DB performance'],
+                        'is_optimal' => $isOptimal,
+                    ]);
+                }
 
                 // Notify if newly optimal
                 if ($isOptimal && !$alreadyWasOptimal) {

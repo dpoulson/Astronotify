@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -17,10 +20,11 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body>
-        <div class="font-sans text-gray-900 dark:text-gray-100 antialiased">
+    <body class="flex flex-col min-h-screen">
+        <div class="font-sans text-gray-900 dark:text-gray-100 antialiased flex-grow flex flex-col">
             {{ $slot }}
         </div>
+        <x-footer />
 
         @livewireScripts
     </body>

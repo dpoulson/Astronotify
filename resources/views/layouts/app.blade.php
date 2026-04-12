@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -20,7 +23,7 @@
     <body class="font-sans antialiased">
         <x-banner />
 
-        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
             @livewire('navigation-menu')
 
             <!-- Page Heading -->
@@ -33,9 +36,11 @@
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="flex-grow flex flex-col">
                 {{ $slot }}
             </main>
+
+            <x-footer />
         </div>
 
         @stack('modals')

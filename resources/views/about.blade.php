@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12 bg-slate-950 min-h-screen text-white">
+    <div class="py-12 bg-slate-950 flex-grow text-white">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-slate-800 border border-slate-700 overflow-hidden shadow-xl sm:rounded-3xl p-8">
                 <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-6">

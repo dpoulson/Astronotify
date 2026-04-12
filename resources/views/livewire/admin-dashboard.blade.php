@@ -4,7 +4,7 @@
     </h2>
 </x-slot>
 
-<div class="py-12 bg-slate-950 text-white min-h-screen">
+<div class="py-12 bg-slate-950 text-white flex-grow">
     <div class="max-w-8xl mx-auto sm:px-6 lg:px-8 space-y-8">
         
         <!-- Stats Row -->
@@ -23,10 +23,17 @@
                 </div>
                 <a href="{{ route('admin.locations') }}" class="mt-4 text-sm text-purple-300 hover:text-purple-200 transition-colors font-semibold">View All Locations &rarr;</a>
             </div>
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg md:col-span-2">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+                <div>
+                    <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total API Calls</h3>
+                    <p class="text-4xl font-extrabold text-yellow-400 mt-2">{{ $totalApiCalls }}</p>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Open-Meteo Queries Server-wide</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg md:col-span-1">
                 <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Optimal Forecasts Historical</h3>
-                <p class="text-4xl font-extrabold text-emerald-400 mt-2">{{ $optimalConditions }} <span class="text-lg text-slate-500">/ {{ $totalConditions }} total mapped</span></p>
-                <p class="text-xs text-slate-500 mt-1">Spanning across {{ $uniqueSearchedLocations }} independent location profiles</p>
+                <p class="text-3xl font-extrabold text-emerald-400 mt-2">{{ $optimalConditions }} <span class="text-lg text-slate-500">/ {{ $totalConditions }}</span></p>
+                <p class="text-xs text-slate-500 mt-1">Spanning across {{ $uniqueSearchedLocations }} profiles</p>
             </div>
         </div>
 

@@ -7,7 +7,7 @@
     </div>
 </x-slot>
 
-<div class="py-12 bg-slate-950 min-h-screen text-white">
+<div class="py-12 bg-slate-950 flex-grow text-white">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
         <div class="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 shadow-xl">
             <div class="space-y-4">
@@ -26,11 +26,17 @@
                                 <p class="text-slate-400 text-sm">{{ $user->email }}</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-2xl font-bold {{ $user->locations_count > 0 ? 'text-purple-400' : 'text-slate-500' }}">
-                                {{ $user->locations_count }}
-                            </span>
-                            <p class="text-xs text-slate-500 uppercase">Locations</p>
+                        <div class="text-right flex flex-col items-end space-y-2">
+                            <div class="flex space-x-2">
+                                <a href="{{ route('admin.user.view', $user->id) }}" class="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/40 text-xs font-bold transition">View</a>
+                                <button wire:click="deleteUser({{ $user->id }})" wire:confirm="Are you sure you want to delete this user and all their locations?" class="px-3 py-1 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40 text-xs font-bold transition">Delete</button>
+                            </div>
+                            <div class="text-right mt-1">
+                                <span class="text-2xl font-bold {{ $user->locations_count > 0 ? 'text-purple-400' : 'text-slate-500' }}">
+                                    {{ $user->locations_count }}
+                                </span>
+                                <p class="text-xs text-slate-500 uppercase">Locations</p>
+                            </div>
                         </div>
                     </div>
                 @empty
