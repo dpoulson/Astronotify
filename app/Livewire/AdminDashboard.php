@@ -45,6 +45,8 @@ class AdminDashboard extends Component
             ];
         });
 
+        $totalApiCalls = (int) \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->value('value') ?? 0;
+
         return view('livewire.admin-dashboard', array_merge($stats, [
             'totalApiCalls' => $totalApiCalls,
         ]))->layout('layouts.app');

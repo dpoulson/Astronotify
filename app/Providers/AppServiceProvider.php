@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Fix for MariaDB older indexing length limits on utf8mb4 configurations
+        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+
         \Illuminate\Support\Facades\Gate::define('admin', function (\App\Models\User $user) {
             return $user->is_admin;
         });
