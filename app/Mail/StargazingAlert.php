@@ -14,6 +14,16 @@ class StargazingAlert extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    /**
+     * The number of times the job may be attempted.
+     */
+    public $tries = 3;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public $backoff = [30, 60, 120];
+
     public $location;
     public $nightLength;
     public $maxClear;
