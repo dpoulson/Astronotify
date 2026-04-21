@@ -10,6 +10,7 @@ use App\Models\WeatherCondition;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\StargazingAlert;
+use App\Mail\StargazingSummary;
 use Carbon\Carbon;
 
 #[Signature('weather:fetch')]
@@ -22,6 +23,8 @@ class FetchWeatherData extends Command
         // Load dynamically from settings layout
         $grouping_decimals = (int) (\App\Models\Setting::where('key', 'grouping_decimal_places')->value('value') ?? 1);
         $forecast_days = (int) (\App\Models\Setting::where('key', 'forecast_days')->value('value') ?? 7);
+        
+        $userAlerts = [];
 
         // Round to 1 decimal place (~11km accuracy) to aggressively batch close locations together into the same meteorological cell
         $groupedLocations = $locations->groupBy(fn(\App\Models\Location $l) => round($l->latitude, $grouping_decimals) . ',' . round($l->longitude, $grouping_decimals));
@@ -122,13 +125,24 @@ class FetchWeatherData extends Command
                         ]);
                     }
 
-                    // Notify if newly optimal
+                    // Collect alert data if newly optimal
                     if ($isOptimal && !$alreadyWasOptimal) {
-                        Mail::to($location->user->email)->send(new StargazingAlert($location, $nightLength, $maxClear, $dateStr));
-                        $this->info("Alert queued for {$location->name} on {$dateStr}");
+                        $userAlerts[$location->user_id]['user'] = $location->user;
+                        $userAlerts[$location->user_id]['alerts'][] = [
+                            'location_name' => $location->name,
+                            'date' => $dateStr,
+                            'night_length' => $nightLength,
+                            'max_clear' => $maxClear,
+                        ];
                     }
                 }
             }
+        }
+
+        // Send aggregated summary emails
+        foreach ($userAlerts as $userId => $data) {
+            Mail::to($data['user']->email)->queue(new StargazingSummary($data['alerts'], $data['user']->name));
+            $this->info("Summary alert queued for " . $data['user']->name . " (" . count($data['alerts']) . " nights)");
         }
         
         $this->info('Weather data fetch and batching complete.');
