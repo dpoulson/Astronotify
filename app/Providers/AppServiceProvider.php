@@ -7,6 +7,8 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Events\CommandFinished;
 use App\Models\CommandLog;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,40 +34,54 @@ class AppServiceProvider extends ServiceProvider
 
         // Log Console Commands
         Event::listen(CommandStarting::class, function (CommandStarting $event) {
-            $command = $event->command;
-            
-            // Exclude noise
-            $exclude = ['serve', 'migrate:status', 'vendor:publish', 'package:discover', 'livewire:discover', 'queue:work', 'queue:listen'];
-            if (in_array($command, $exclude) || is_null($command)) {
-                return;
-            }
+            try {
+                $command = $event->command;
+                
+                // Exclude noise
+                $exclude = ['serve', 'migrate', 'migrate:status', 'vendor:publish', 'package:discover', 'livewire:discover', 'queue:work', 'queue:listen'];
+                if (in_array($command, $exclude) || is_null($command) || !Schema::hasTable('command_logs')) {
+                    return;
+                }
 
-            CommandLog::create([
-                'command' => $command,
-                'status' => 'running',
-                'started_at' => now(),
-            ]);
+                CommandLog::create([
+                    'command' => $command,
+                    'status' => 'running',
+                    'started_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                // Silently fail to not block the command
+                Log::error('Command logging failed: ' . $e->getMessage());
+            }
         });
 
         Event::listen(CommandFinished::class, function (CommandFinished $event) {
-            $command = $event->command;
-            
-            // Should match the starting log
-            $log = CommandLog::where('command', $command)
-                ->where('status', 'running')
-                ->orderBy('id', 'desc')
-                ->first();
-
-            if ($log) {
-                $finishedAt = now();
-                $duration = $log->started_at->diffInMilliseconds($finishedAt);
+            try {
+                $command = $event->command;
                 
-                $log->update([
-                    'status' => $event->exitCode === 0 ? 'success' : 'failed',
-                    'exit_code' => $event->exitCode,
-                    'finished_at' => $finishedAt,
-                    'duration_ms' => $duration,
-                ]);
+                if (!Schema::hasTable('command_logs')) {
+                    return;
+                }
+
+                // Should match the starting log
+                $log = CommandLog::where('command', $command)
+                    ->where('status', 'running')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($log) {
+                    $finishedAt = now();
+                    $duration = $log->started_at->diffInMilliseconds($finishedAt);
+                    
+                    $log->update([
+                        'status' => $event->exitCode === 0 ? 'success' : 'failed',
+                        'exit_code' => $event->exitCode,
+                        'finished_at' => $finishedAt,
+                        'duration_ms' => $duration,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Silently fail
+                Log::error('Command logging (finished) failed: ' . $e->getMessage());
             }
         });
     }
