@@ -25,10 +25,22 @@
             </div>
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
                 <div>
-                    <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Total API Calls</h3>
-                    <p class="text-4xl font-extrabold text-yellow-400 mt-2">{{ $totalApiCalls }}</p>
+                    <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Weather API Calls</h3>
+                    <div class="mt-4 space-y-4">
+                        <div class="flex justify-between items-end">
+                            <span class="text-xs text-slate-500 font-medium uppercase tracking-tight">Today</span>
+                            <span class="text-3xl font-extrabold text-yellow-400 leading-none">{{ $apiCallsToday }}</span>
+                        </div>
+                        <div class="flex justify-between items-end border-t border-slate-700/50 pt-2">
+                            <span class="text-xs text-slate-500 font-medium uppercase tracking-tight">Last 7d</span>
+                            <span class="text-lg font-bold text-slate-300 leading-none">{{ $apiCallsWeek }}</span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <span class="text-xs text-slate-500 font-medium uppercase tracking-tight">Last 30d</span>
+                            <span class="text-lg font-bold text-slate-300 leading-none">{{ $apiCallsMonth }}</span>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">Open-Meteo Queries Server-wide</p>
             </div>
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg md:col-span-1">
                 <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Optimal Forecasts Historical</h3>

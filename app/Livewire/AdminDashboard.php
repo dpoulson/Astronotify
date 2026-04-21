@@ -12,7 +12,7 @@ class AdminDashboard extends Component
 {
     public function render()
     {
-        $stats = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats', 3600, function () {
+        $stats = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats_v2', 3600, function () {
             $totalConditions = WeatherCondition::count();
             $optimalConditions = WeatherCondition::where('is_optimal', true)->count();
             $uniqueSearchedLocations = WeatherCondition::distinct('location_id')->count('location_id');
@@ -33,6 +33,10 @@ class AdminDashboard extends Component
                 $chartLocations[] = isset($locationRegistrations[$date]) ? $locationRegistrations[$date]->count() : 0;
             }
 
+            $apiCallsToday = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', today())->value('value');
+            $apiCallsWeek = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(6))->sum('value');
+            $apiCallsMonth = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(29))->sum('value');
+
             return [
                 'totalUsers' => User::count(),
                 'totalLocations' => Location::count(),
@@ -42,13 +46,12 @@ class AdminDashboard extends Component
                 'chartLabels' => json_encode($chartLabels),
                 'chartUsers' => json_encode($chartUsers),
                 'chartLocations' => json_encode($chartLocations),
+                'apiCallsToday' => $apiCallsToday,
+                'apiCallsWeek' => $apiCallsWeek,
+                'apiCallsMonth' => $apiCallsMonth,
             ];
         });
 
-        $totalApiCalls = (int) \Illuminate\Support\Facades\DB::table('system_metrics')->where('key', 'weather_api_calls')->value('value') ?? 0;
-
-        return view('livewire.admin-dashboard', array_merge($stats, [
-            'totalApiCalls' => $totalApiCalls,
-        ]))->layout('layouts.app');
+        return view('livewire.admin-dashboard', $stats)->layout('layouts.app');
     }
 }

@@ -24,6 +24,19 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+
+        static::deleted(function (User $user) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

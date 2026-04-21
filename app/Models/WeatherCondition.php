@@ -9,6 +9,20 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WeatherCondition extends Model
 {
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (WeatherCondition $condition) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+
+        static::deleted(function (WeatherCondition $condition) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+    }
+
     protected $fillable = [
         'location_id',
         'date',

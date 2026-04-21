@@ -43,4 +43,12 @@ Route::middleware([
     Route::get('/admin/settings', \App\Livewire\AdminSettings::class)
         ->middleware('can:admin')
         ->name('admin.settings');
+
+    Route::get('/admin/queue', \App\Livewire\AdminEmailQueue::class)
+        ->middleware('can:admin')
+        ->name('admin.queue');
+
+    Route::get('/admin/crons', \App\Livewire\AdminCronMonitor::class)
+        ->middleware('can:admin')
+        ->name('admin.crons');
 });

@@ -27,6 +27,12 @@
                         <x-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
                             {{ __('Settings') }}
                         </x-nav-link>
+                        <x-nav-link href="{{ route('admin.queue') }}" :active="request()->routeIs('admin.queue')">
+                            {{ __('Email Queue') }}
+                        </x-nav-link>
+                        <x-nav-link href="{{ route('admin.crons') }}" :active="request()->routeIs('admin.crons')">
+                            {{ __('Cron Monitor') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -166,6 +172,12 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
                     {{ __('Settings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('admin.queue') }}" :active="request()->routeIs('admin.queue')">
+                    {{ __('Email Queue') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('admin.crons') }}" :active="request()->routeIs('admin.crons')">
+                    {{ __('Cron Monitor') }}
                 </x-responsive-nav-link>
             @endif
         </div>

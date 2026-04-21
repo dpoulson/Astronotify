@@ -9,6 +9,20 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Location extends Model
 {
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Location $location) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+
+        static::deleted(function (Location $location) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'name',
