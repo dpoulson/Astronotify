@@ -66,12 +66,16 @@ class LocationManager extends Component
             $this->max_cloud_cover = $location->max_cloud_cover;
             $this->notify_iss_sun_transit = (bool) $location->notify_iss_sun_transit;
             $this->notify_iss_moon_transit = (bool) $location->notify_iss_moon_transit;
+            $this->dispatch('open-form');
         }
     }
 
     public function cancelEdit()
     {
         $this->reset(['editingLocationId', 'name', 'town', 'latitude', 'longitude', 'elevation', 'min_night_length_hours', 'min_clear_hours', 'max_wind_speed', 'max_cloud_cover', 'notify_iss_sun_transit', 'notify_iss_moon_transit']);
+        if (Auth::user()->locations()->count() > 0) {
+            $this->dispatch('close-form');
+        }
     }
 
     public function save()
@@ -110,6 +114,9 @@ class LocationManager extends Component
         }
 
         $this->cancelEdit();
+        if (Auth::user()->locations()->count() > 0) {
+            $this->dispatch('close-form');
+        }
     }
 
     public function delete($id)

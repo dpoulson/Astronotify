@@ -73,21 +73,33 @@ class FetchWeatherData extends Command
                 ]);
             }
 
+            // Open-Meteo free tier caps at 16 days. We need +2 for the sunrise/sunset
+            // buffer, so cap the usable forecast window at 14 nights.
+            $apiDays = min($forecast_days, 14) + 2;
+
             $response = Http::get('https://api.open-meteo.com/v1/forecast', [
-                'latitude' => $first->latitude,
-                'longitude' => $first->longitude,
-                'hourly' => 'cloud_cover,wind_speed_10m',
-                'daily' => 'sunrise,sunset',
-                'timezone' => 'auto',
-                'forecast_days' => $forecast_days + 1
+                'latitude'      => $first->latitude,
+                'longitude'     => $first->longitude,
+                'hourly'        => 'cloud_cover,wind_speed_10m',
+                'daily'         => 'sunrise,sunset',
+                'timezone'      => 'auto',
+                // +2 ensures sunrise[dayIndex+1] always exists even when the API's
+                // local timezone shifts the daily array forward by a day.
+                'forecast_days' => $apiDays
             ]);
 
-            if ($response->failed()) continue;
+            if ($response->failed()) {
+                $this->error("API failed for {$coords} (HTTP {$response->status()}) — skipping.");
+                continue;
+            }
 
             $data = $response->json();
+            $tz   = $data['timezone'] ?? 'UTC';
+            $this->line("  {$coords} (tz={$tz}) — processing " . $group->pluck('name')->join(', ') . '...');
             
-            // Loop through the configured nights dynamically
-            for ($dayIndex = 0; $dayIndex < $forecast_days; $dayIndex++) {
+            // Loop through the configured nights dynamically (capped at 14 to match API window)
+            $nightCount = min($forecast_days, 14);
+            for ($dayIndex = 0; $dayIndex < $nightCount; $dayIndex++) {
                 $sunsetStr = $data['daily']['sunset'][$dayIndex] ?? null;
                 $sunriseStr = $data['daily']['sunrise'][$dayIndex + 1] ?? null;
                 
@@ -139,18 +151,23 @@ class FetchWeatherData extends Command
                     $alreadyWasOptimal = $condition ? $condition->is_optimal : false;
 
                     // Save to DB to cut down on API calls
-                    if ($condition) {
-                        $condition->update([
-                            'forecast_data' => $nightHours,
-                            'is_optimal' => $isOptimal,
-                        ]);
-                    } else {
-                        WeatherCondition::create([
-                            'location_id' => $location->id,
-                            'date' => Carbon::parse($dateStr),
-                            'forecast_data' => $nightHours,
-                            'is_optimal' => $isOptimal,
-                        ]);
+                    try {
+                        if ($condition) {
+                            $condition->update([
+                                'forecast_data' => $nightHours,
+                                'is_optimal'    => $isOptimal,
+                            ]);
+                        } else {
+                            WeatherCondition::create([
+                                'location_id'   => $location->id,
+                                'date'          => Carbon::parse($dateStr),
+                                'forecast_data' => $nightHours,
+                                'is_optimal'    => $isOptimal,
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        $this->error("  Failed to save condition for {$location->name} on {$dateStr}: " . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error("weather:fetch DB error for location {$location->id} on {$dateStr}: " . $e->getMessage());
                     }
 
                     // Collect alert data if newly optimal

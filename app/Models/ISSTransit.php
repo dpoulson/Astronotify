@@ -16,6 +16,7 @@ class ISSTransit extends Model
         'altitude_degrees',
         'azimuth_degrees',
         'is_exact_transit',
+        'path_points',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class ISSTransit extends Model
             'altitude_degrees' => 'decimal:2',
             'azimuth_degrees' => 'decimal:2',
             'is_exact_transit' => 'boolean',
+            'path_points' => 'array',
         ];
     }
 

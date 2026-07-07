@@ -113,6 +113,10 @@ class FetchISSTransits extends Command
                 $minMoonAlt = 0;
                 $minMoonAz = 0;
 
+                // Path point buffers: angular offsets relative to body centre
+                $sunPathPoints  = [];
+                $moonPathPoints = [];
+
                 // Step 1: Coarse search every 10 seconds
                 $coarseStep = 10.0 / 86400.0;
                 for ($t = $pass->aos; $t <= $pass->los; $t += $coarseStep) {
@@ -134,6 +138,13 @@ class FetchISSTransits extends Command
                             $minSunAlt = $sunPos['altitude'];
                             $minSunAz = $sunPos['azimuth'];
                         }
+                        // Collect path within 3° of body centre (wide enough to always get several points)
+                        if ($sep < 3.0) {
+                            $sunPathPoints[] = [
+                                'dx' => round($sat->az  - $sunPos['azimuth'],  4),
+                                'dy' => round($sat->el  - $sunPos['altitude'], 4),
+                            ];
+                        }
                     }
 
                     if ($loc->notify_iss_moon_transit) {
@@ -144,6 +155,13 @@ class FetchISSTransits extends Command
                             $minMoonTime = $t;
                             $minMoonAlt = $moonPos['altitude'];
                             $minMoonAz = $moonPos['azimuth'];
+                        }
+                        // Collect path within 3° of body centre (wide enough to always get several points)
+                        if ($sep < 3.0) {
+                            $moonPathPoints[] = [
+                                'dx' => round($sat->az  - $moonPos['azimuth'],  4),
+                                'dy' => round($sat->el  - $moonPos['altitude'], 4),
+                            ];
                         }
                     }
                 }
@@ -224,6 +242,7 @@ class FetchISSTransits extends Command
                         'altitude_degrees' => $minSunAlt,
                         'azimuth_degrees' => $minSunAz,
                         'is_exact_transit' => ($minSunSep <= 0.26),
+                        'path_points' => $sunPathPoints ?: null,
                     ]);
                 }
 
@@ -249,6 +268,7 @@ class FetchISSTransits extends Command
                         'altitude_degrees' => $minMoonAlt,
                         'azimuth_degrees' => $minMoonAz,
                         'is_exact_transit' => ($minMoonSep <= 0.26),
+                        'path_points' => $moonPathPoints ?: null,
                     ]);
                 }
             }
