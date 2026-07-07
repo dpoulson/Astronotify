@@ -140,9 +140,18 @@ class FetchWeatherData extends Command
         }
 
         // Send aggregated summary emails
+        $this->info("Queuing aggregated summary emails for " . count($userAlerts) . " users...");
         foreach ($userAlerts as $userId => $data) {
-            Mail::to($data['user']->email)->queue(new StargazingSummary($data['alerts'], $data['user']->name));
-            $this->info("Summary alert queued for " . $data['user']->name . " (" . count($data['alerts']) . " nights)");
+            try {
+                \Illuminate\Support\Facades\Log::info("Queuing stargazing summary email for User ID: {$userId} ({$data['user']->email}) with " . count($data['alerts']) . " nights.");
+                Mail::to($data['user']->email)->queue(new StargazingSummary($data['alerts'], $data['user']->name));
+                $this->info("Summary alert queued for " . $data['user']->name . " (" . count($data['alerts']) . " nights)");
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to queue stargazing summary for User ID: {$userId}: " . $e->getMessage(), [
+                    'exception' => $e
+                ]);
+                $this->error("Failed to queue email for " . $data['user']->name . ": " . $e->getMessage());
+            }
         }
         
         $this->info('Weather data fetch and batching complete.');

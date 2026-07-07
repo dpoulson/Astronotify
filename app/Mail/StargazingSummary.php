@@ -10,9 +10,19 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class StargazingSummary extends Mailable
+class StargazingSummary extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+    
+    /**
+     * The number of times the job may be attempted.
+     */
+    public $tries = 3;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public $backoff = [30, 60, 120];
     
     public $alerts;
     public $userName;
