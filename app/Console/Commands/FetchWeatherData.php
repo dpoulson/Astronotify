@@ -35,16 +35,43 @@ class FetchWeatherData extends Command
             $first = $group->first();
 
             // Track API Call (Grand Total)
-            \Illuminate\Support\Facades\DB::table('system_metrics')->updateOrInsert(
-                ['key' => 'weather_api_calls'],
-                ['value' => \Illuminate\Support\Facades\DB::raw('value + 1'), 'updated_at' => now()]
-            );
+            $sysMetric = \Illuminate\Support\Facades\DB::table('system_metrics')
+                ->where('key', 'weather_api_calls')
+                ->first();
+
+            if ($sysMetric) {
+                \Illuminate\Support\Facades\DB::table('system_metrics')
+                    ->where('key', 'weather_api_calls')
+                    ->increment('value');
+            } else {
+                \Illuminate\Support\Facades\DB::table('system_metrics')->insert([
+                    'key' => 'weather_api_calls',
+                    'value' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             // Track API Call (Daily)
-            \Illuminate\Support\Facades\DB::table('daily_metrics')->updateOrInsert(
-                ['key' => 'weather_api_calls', 'date' => now()->toDateString()],
-                ['value' => \Illuminate\Support\Facades\DB::raw('value + 1'), 'updated_at' => now(), 'created_at' => now()]
-            );
+            $dailyMetric = \Illuminate\Support\Facades\DB::table('daily_metrics')
+                ->where('key', 'weather_api_calls')
+                ->where('date', now()->toDateString())
+                ->first();
+
+            if ($dailyMetric) {
+                \Illuminate\Support\Facades\DB::table('daily_metrics')
+                    ->where('key', 'weather_api_calls')
+                    ->where('date', now()->toDateString())
+                    ->increment('value');
+            } else {
+                \Illuminate\Support\Facades\DB::table('daily_metrics')->insert([
+                    'key' => 'weather_api_calls',
+                    'date' => now()->toDateString(),
+                    'value' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             $response = Http::get('https://api.open-meteo.com/v1/forecast', [
                 'latitude' => $first->latitude,
