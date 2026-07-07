@@ -105,6 +105,7 @@ class FetchWeatherData extends Command
                     $time = Carbon::parse($timeStr);
                     if ($time->between($sunset, $sunrise)) {
                         $nightHours[] = [
+                            'time' => $time->format('H:i'),
                             'cloud' => $data['hourly']['cloud_cover'][$index] ?? 100,
                             'wind' => $data['hourly']['wind_speed_10m'][$index] ?? 100,
                         ];
@@ -140,14 +141,14 @@ class FetchWeatherData extends Command
                     // Save to DB to cut down on API calls
                     if ($condition) {
                         $condition->update([
-                            'forecast_data' => ['note' => 'data trimmed for DB performance'],
+                            'forecast_data' => $nightHours,
                             'is_optimal' => $isOptimal,
                         ]);
                     } else {
                         WeatherCondition::create([
                             'location_id' => $location->id,
                             'date' => Carbon::parse($dateStr),
-                            'forecast_data' => ['note' => 'data trimmed for DB performance'],
+                            'forecast_data' => $nightHours,
                             'is_optimal' => $isOptimal,
                         ]);
                     }
@@ -166,21 +167,27 @@ class FetchWeatherData extends Command
             }
         }
 
-        // Send aggregated summary emails
-        $this->info("Queuing aggregated summary emails for " . count($userAlerts) . " users...");
-        foreach ($userAlerts as $userId => $data) {
-            try {
-                \Illuminate\Support\Facades\Log::info("Queuing stargazing summary email for User ID: {$userId} ({$data['user']->email}) with " . count($data['alerts']) . " nights.");
-                Mail::to($data['user']->email)->queue(new StargazingSummary($data['alerts'], $data['user']->name));
-                $this->info("Summary alert queued for " . $data['user']->name . " (" . count($data['alerts']) . " nights)");
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to queue stargazing summary for User ID: {$userId}: " . $e->getMessage(), [
-                    'exception' => $e
-                ]);
-                $this->error("Failed to queue email for " . $data['user']->name . ": " . $e->getMessage());
+        // Send emails
+        if (count($userAlerts) > 0) {
+            $this->info("Queuing aggregated summary emails for " . count($userAlerts) . " users...");
+            foreach ($userAlerts as $userId => $data) {
+                $user = $data['user'];
+                $alerts = $data['alerts'];
+                
+                try {
+                    Mail::to($user->email)->queue(new StargazingSummary($alerts, $user->name));
+                    $this->info("Summary alert queued for {$user->name} (" . count($alerts) . " nights)");
+                } catch (\Exception $e) {
+                    Log::error("Failed to queue weather summary email for User ID {$userId}: " . $e->getMessage());
+                    $this->error("Failed to queue email for {$user->name}: " . $e->getMessage());
+                }
             }
         }
-        
-        $this->info('Weather data fetch and batching complete.');
+
+        // Prune historical weather records older than today to save DB space
+        WeatherCondition::where('date', '<', today()->toDateString())->delete();
+
+        $this->info("Weather data fetch and batching complete.");
+        return 0;
     }
 }

@@ -60,4 +60,9 @@ class Location extends Model
     {
         return $this->hasMany(WeatherCondition::class);
     }
+
+    public function transits()
+    {
+        return $this->hasMany(ISSTransit::class);
+    }
 }

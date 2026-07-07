@@ -120,7 +120,6 @@ class LocationManager extends Component
             session()->flash('message', 'Location removed.');
         }
     }
-
     public function render()
     {
         $upcomingNights = \App\Models\WeatherCondition::with('location')
@@ -132,9 +131,20 @@ class LocationManager extends Component
             ->orderBy('date', 'asc')
             ->get();
 
+        $upcomingTransits = \App\Models\ISSTransit::with('location')
+            ->whereHas('location', function ($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('time', '>=', now())
+            ->orderBy('time', 'asc')
+            ->get();
+
         return view('livewire.location-manager', [
-            'locations' => Auth::user()->locations()->get(),
+            'locations' => Auth::user()->locations()->with(['conditions' => function ($q) {
+                $q->where('date', '>=', today()->toDateString())->orderBy('date', 'asc');
+            }])->get(),
             'upcomingNights' => $upcomingNights,
+            'upcomingTransits' => $upcomingTransits,
         ]);
     }
 }

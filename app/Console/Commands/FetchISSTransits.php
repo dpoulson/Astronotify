@@ -75,6 +75,9 @@ class FetchISSTransits extends Command
 
         $this->info("Running orbital propagation and transit calculations for {$forecastDays} days...");
 
+        // Clear existing transit records for active locations to rebuild from the latest TLE
+        \App\Models\ISSTransit::whereIn('location_id', $locations->pluck('id'))->delete();
+
         $userTransits = [];
 
         foreach ($locations as $loc) {
@@ -212,6 +215,16 @@ class FetchISSTransits extends Command
                         "azimuth_degrees" => round($minSunAz, 2),
                         "is_exact_transit" => ($minSunSep <= 0.26)
                     ];
+
+                    \App\Models\ISSTransit::create([
+                        'location_id' => $loc->id,
+                        'type' => 'sun',
+                        'time' => $date,
+                        'separation_degrees' => $minSunSep,
+                        'altitude_degrees' => $minSunAlt,
+                        'azimuth_degrees' => $minSunAz,
+                        'is_exact_transit' => ($minSunSep <= 0.26),
+                    ]);
                 }
 
                 if ($loc->notify_iss_moon_transit && $minMoonSep <= $limitDeg && $minMoonAlt > 0) {
@@ -227,6 +240,16 @@ class FetchISSTransits extends Command
                         "azimuth_degrees" => round($minMoonAz, 2),
                         "is_exact_transit" => ($minMoonSep <= 0.26)
                     ];
+
+                    \App\Models\ISSTransit::create([
+                        'location_id' => $loc->id,
+                        'type' => 'moon',
+                        'time' => $date,
+                        'separation_degrees' => $minMoonSep,
+                        'altitude_degrees' => $minMoonAlt,
+                        'azimuth_degrees' => $minMoonAz,
+                        'is_exact_transit' => ($minMoonSep <= 0.26),
+                    ]);
                 }
             }
 
