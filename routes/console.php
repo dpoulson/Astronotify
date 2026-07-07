@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('weather:fetch')->dailyAt('00:00')->withoutOverlapping();
+Schedule::command('weather:iss-transits')->dailyAt('00:05')->withoutOverlapping();

@@ -14,19 +14,25 @@ class LocationManager extends Component
     public $town = '';
     public $latitude = '';
     public $longitude = '';
+    public $elevation = 0;
     public $min_night_length_hours = 4;
     public $min_clear_hours = 2;
     public $max_wind_speed = 20.0;
     public $max_cloud_cover = 20;
+    public $notify_iss_sun_transit = false;
+    public $notify_iss_moon_transit = false;
 
     protected $rules = [
         'name' => 'required|string|max:255',
         'latitude' => 'required|numeric|between:-90,90',
         'longitude' => 'required|numeric|between:-180,180',
+        'elevation' => 'required|integer|min:-100|max:10000',
         'min_night_length_hours' => 'required|integer|min:1|max:24',
         'min_clear_hours' => 'required|integer|min:1|max:24',
         'max_wind_speed' => 'required|numeric|min:0',
         'max_cloud_cover' => 'required|integer|min:0|max:100',
+        'notify_iss_sun_transit' => 'boolean',
+        'notify_iss_moon_transit' => 'boolean',
     ];
 
     public function updatedTown($value)
@@ -53,16 +59,19 @@ class LocationManager extends Component
             $this->name = $location->name;
             $this->latitude = $location->latitude;
             $this->longitude = $location->longitude;
+            $this->elevation = $location->elevation;
             $this->min_night_length_hours = $location->min_night_length_hours;
             $this->min_clear_hours = $location->min_clear_hours;
             $this->max_wind_speed = $location->max_wind_speed;
             $this->max_cloud_cover = $location->max_cloud_cover;
+            $this->notify_iss_sun_transit = (bool) $location->notify_iss_sun_transit;
+            $this->notify_iss_moon_transit = (bool) $location->notify_iss_moon_transit;
         }
     }
 
     public function cancelEdit()
     {
-        $this->reset(['editingLocationId', 'name', 'town', 'latitude', 'longitude', 'min_night_length_hours', 'min_clear_hours', 'max_wind_speed', 'max_cloud_cover']);
+        $this->reset(['editingLocationId', 'name', 'town', 'latitude', 'longitude', 'elevation', 'min_night_length_hours', 'min_clear_hours', 'max_wind_speed', 'max_cloud_cover', 'notify_iss_sun_transit', 'notify_iss_moon_transit']);
     }
 
     public function save()
@@ -74,10 +83,13 @@ class LocationManager extends Component
                 'name' => $this->name,
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
+                'elevation' => $this->elevation,
                 'min_night_length_hours' => $this->min_night_length_hours,
                 'min_clear_hours' => $this->min_clear_hours,
                 'max_wind_speed' => $this->max_wind_speed,
                 'max_cloud_cover' => $this->max_cloud_cover,
+                'notify_iss_sun_transit' => $this->notify_iss_sun_transit,
+                'notify_iss_moon_transit' => $this->notify_iss_moon_transit,
             ]);
             session()->flash('message', 'Location updated successfully.');
         } else {
@@ -85,10 +97,13 @@ class LocationManager extends Component
                 'name' => $this->name,
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
+                'elevation' => $this->elevation,
                 'min_night_length_hours' => $this->min_night_length_hours,
                 'min_clear_hours' => $this->min_clear_hours,
                 'max_wind_speed' => $this->max_wind_speed,
                 'max_cloud_cover' => $this->max_cloud_cover,
+                'notify_iss_sun_transit' => $this->notify_iss_sun_transit,
+                'notify_iss_moon_transit' => $this->notify_iss_moon_transit,
                 'is_active' => true,
             ]);
             session()->flash('message', 'Location added successfully.');

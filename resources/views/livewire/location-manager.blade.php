@@ -61,7 +61,7 @@
                             <p class="text-xs text-slate-400 mt-1">Typing a town will auto-fill the coordinates below.</p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-300">Latitude</label>
                                 <input type="text" wire:model="latitude" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 placeholder-slate-500" placeholder="0.000">
@@ -71,6 +71,11 @@
                                 <label class="block text-sm font-medium text-slate-300">Longitude</label>
                                 <input type="text" wire:model="longitude" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 placeholder-slate-500" placeholder="0.000">
                                 @error('longitude') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300" title="Elevation above sea level in meters">Elevation (m)</label>
+                                <input type="number" wire:model="elevation" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 placeholder-slate-500" placeholder="0">
+                                @error('elevation') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
@@ -96,6 +101,30 @@
                             </div>
                         </div>
 
+                        <div class="border-t border-slate-700 pt-4 space-y-3">
+                            <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Transit Notifications</span>
+                            
+                            <label class="relative flex items-start cursor-pointer select-none">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" wire:model="notify_iss_sun_transit" class="w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                </div>
+                                <div class="ms-3 text-sm">
+                                    <span class="font-medium text-slate-200">Notify of ISS Solar Transits ☀️</span>
+                                    <span class="block text-xs text-slate-400">Get alerted when the ISS passes in front of the Sun.</span>
+                                </div>
+                            </label>
+
+                            <label class="relative flex items-start cursor-pointer select-none">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" wire:model="notify_iss_moon_transit" class="w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                </div>
+                                <div class="ms-3 text-sm">
+                                    <span class="font-medium text-slate-200">Notify of ISS Lunar Transits 🌙</span>
+                                    <span class="block text-xs text-slate-400">Get alerted when the ISS passes in front of the Moon.</span>
+                                </div>
+                            </label>
+                        </div>
+
                         <div class="pt-4 flex flex-col space-y-3">
                             <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
                                 {{ $editingLocationId ? 'Update Location' : 'Save Location' }}
@@ -119,6 +148,19 @@
                             <div class="text-slate-400 text-sm mt-1 mb-3 flex space-x-4">
                                 <span>Lat: <span class="text-slate-200">{{ $location->latitude }}</span></span>
                                 <span>Lon: <span class="text-slate-200">{{ $location->longitude }}</span></span>
+                                <span>Elev: <span class="text-slate-200">{{ $location->elevation }}m</span></span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mt-1 mb-4">
+                                @if($location->notify_iss_sun_transit)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/40 text-amber-300 border border-amber-800/60 shadow">
+                                        ☀️ ISS Solar Transit
+                                    </span>
+                                @endif
+                                @if($location->notify_iss_moon_transit)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-950/60 text-blue-300 border border-slate-700 shadow">
+                                        🌙 ISS Lunar Transit
+                                    </span>
+                                @endif
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-300">
                                 <div class="bg-slate-900/60 p-2 rounded-lg border border-slate-700">🌙 Min Night: <span class="font-bold text-blue-300">{{ $location->min_night_length_hours }}h</span></div>

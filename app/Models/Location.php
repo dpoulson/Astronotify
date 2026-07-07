@@ -28,11 +28,14 @@ class Location extends Model
         'name',
         'latitude',
         'longitude',
+        'elevation',
         'min_night_length_hours',
         'min_clear_hours',
         'max_wind_speed',
         'max_cloud_cover',
         'is_active',
+        'notify_iss_sun_transit',
+        'notify_iss_moon_transit',
     ];
 
     protected function casts(): array
@@ -40,8 +43,11 @@ class Location extends Model
         return [
             'latitude' => 'decimal:8',
             'longitude' => 'decimal:8',
+            'elevation' => 'integer',
             'max_wind_speed' => 'decimal:2',
             'is_active' => 'boolean',
+            'notify_iss_sun_transit' => 'boolean',
+            'notify_iss_moon_transit' => 'boolean',
         ];
     }
 
