@@ -29,7 +29,7 @@
 - [ ] L **Path point density** — the coarse 10-second sampling gives very few path points for fast-moving ISS passes; consider a finer pass (~2s) within ±30s of the closest approach to get a more accurate chord
 - [x] M **Conjunction threshold setting** — currently hard-coded at 0.75°; expose this in the admin settings page
 - [x] H **ISS pass schedule view** — a simple table of all upcoming passes (not just transits) for each location with AOS/LOS time and max elevation
-- [ ] L **Hardcoded values in SunCalc** — There are a lot of hardcoded values in SunCalc.php functions, should these be replaced with named constants?
+- [x] L **Hardcoded values in SunCalc** — There are a lot of hardcoded values in SunCalc.php functions, should these be replaced with named constants?
 
 ## 🌤️ Weather
 - [ ] L **forecast_days admin cap warning** — the setting is currently 16 but Open-Meteo caps at 16 and we need +2 buffer, so we silently cap at 14 nights; surface this limit in the admin settings UI with a note
@@ -43,4 +43,4 @@
 - [ ] L **Scheduler verification** — confirm `php artisan schedule:run` is wired up in the hosting cron job and both `weather:fetch` and `weather:iss-transits` fire daily
 - [ ] L **Queue worker** — ensure `php artisan queue:work` (or `queue:listen`) is running as a persistent process on the shared host, or switch to `QUEUE_CONNECTION=sync` if a worker can't be kept alive
 - [ ] L **`.env` secrets audit** — double-check `APP_KEY`, mail credentials, and `APP_DEBUG=false` before going live
-- [ ] M **Error page branding** — style the 404 / 500 pages to match the dark theme
+- [x] M **Error page branding** — style the 404 / 500 pages to match the dark theme

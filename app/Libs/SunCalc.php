@@ -4,148 +4,34 @@ namespace App\Libs;
 
 use DateTime;
 
+/**
+ * SunCalc astronomical calculations library.
+ * Computes positions, coordinates, and phases for the Sun and Moon.
+ * Adapted from the original Javascript SunCalc library by Vladimir Agafonkin.
+ */
 class SunCalc
 {
+    // Mathematical and Astronomical Constants
     const PI = 3.14159265358979323846;
-    const RAD = 0.017453292519943295; // PI / 180
-    const DAY_MS = 86400000;
-    const J1970 = 2440588;
-    const J2000 = 2451545;
-    const EARTH_RADIUS = 6378.14; // equatorial radius in km, for the Moon's topocentric parallax
+    const RAD = 0.017453292519943295; // Degrees to Radians conversion factor (PI / 180)
+    const DAY_MS = 86400000;          // Milliseconds in a solar day
+    const J1970 = 2440588;            // Julian Date for Unix Epoch (1970-01-01)
+    const J2000 = 2451545;            // Julian Date for J2000 epoch reference
+    const EARTH_RADIUS = 6378.14;     // Earth equatorial radius in km
 
-    private static $moonLon = [
-        0, 0, 1, 0, 6288774, -20905355,
-        2, 0, -1, 0, 1274027, -3699111,
-        2, 0, 0, 0, 658314, -2955968,
-        0, 0, 2, 0, 213618, -569925,
-        0, 1, 0, 0, -185116, 48888,
-        0, 0, 0, 2, -114332, -3149,
-        2, 0, -2, 0, 58793, 246158,
-        2, -1, -1, 0, 57066, -152138,
-        2, 0, 1, 0, 53322, -170733,
-        2, -1, 0, 0, 45758, -204586,
-        0, 1, -1, 0, -40923, -129620,
-        1, 0, 0, 0, -34720, 108743,
-        0, 1, 1, 0, -30383, 104755,
-        2, 0, 0, -2, 15327, 10321,
-        0, 0, 1, 2, -12528, 0,
-        0, 0, 1, -2, 10980, 79661,
-        4, 0, -1, 0, 10675, -34782,
-        0, 0, 3, 0, 10034, -23210,
-        4, 0, -2, 0, 8548, -21636,
-        2, 1, -1, 0, -7888, 24208,
-        2, 1, 0, 0, -6766, 30824,
-        1, 0, -1, 0, -5163, -8379,
-        1, 1, 0, 0, 4987, -16675,
-        2, -1, 1, 0, 4036, -12831,
-        2, 0, 2, 0, 3994, -10445,
-        4, 0, 0, 0, 3861, -11650,
-        2, 0, -3, 0, 3665, 14403,
-        0, 1, -2, 0, -2689, -7003,
-        2, 0, -1, 2, -2602, 0,
-        2, -1, -2, 0, 2390, 10056,
-        1, 0, 1, 0, -2348, 6322,
-        2, -2, 0, 0, 2236, -9884,
-        0, 1, 2, 0, -2120, 5751,
-        0, 2, 0, 0, -2069, 0,
-        2, -2, -1, 0, 2048, -4950,
-        2, 0, 1, -2, -1773, 4130,
-        2, 0, 0, 2, -1595, 0,
-        4, -1, -1, 0, 1215, -3958,
-        0, 0, 2, 2, -1110, 0,
-        3, 0, -1, 0, -892, 3258,
-        2, 1, 1, 0, -810, 2616,
-        4, -1, -2, 0, 759, -1897,
-        0, 2, -1, 0, -713, -2117,
-        2, 2, -1, 0, -700, 2354,
-        2, 1, -2, 0, 691, 0,
-        2, -1, 0, -2, 596, 0,
-        4, 0, 1, 0, 549, -1423,
-        0, 0, 4, 0, 537, -1117,
-        4, -1, 0, 0, 520, -1571,
-        1, 0, -2, 0, -487, -1739,
-        2, 1, 0, -2, -399, 0,
-        0, 0, 2, -2, -381, -4421,
-        1, 1, 1, 0, 351, 0,
-        3, 0, -2, 0, -340, 0,
-        4, 0, -3, 0, 330, 0,
-        2, -1, 2, 0, 327, 0,
-        0, 2, 1, 0, -323, 1165,
-        1, 1, -1, 0, 299, 0,
-        2, 0, 3, 0, 294, 0,
-        2, 0, -1, -2, 0, 8752
-    ];
-
-    private static $moonLat = [
-        0, 0, 0, 1, 5128122,
-        0, 0, 1, 1, 280602,
-        0, 0, 1, -1, 277693,
-        2, 0, 0, -1, 173237,
-        2, 0, -1, 1, 55413,
-        2, 0, -1, -1, 46271,
-        2, 0, 0, 1, 32573,
-        0, 0, 2, 1, 17198,
-        2, 0, 1, -1, 9266,
-        0, 0, 2, -1, 8822,
-        2, -1, 0, -1, 8216,
-        2, 0, -2, -1, 4324,
-        2, 0, 1, 1, 4200,
-        2, 1, 0, -1, -3359,
-        2, -1, -1, 1, 2463,
-        2, -1, 0, 1, 2211,
-        2, -1, -1, -1, 2065,
-        0, 1, -1, -1, -1870,
-        4, 0, -1, -1, 1828,
-        0, 1, 0, 1, -1794,
-        0, 0, 0, 3, -1749,
-        0, 1, -1, 1, -1565,
-        1, 0, 0, 1, -1491,
-        0, 1, 1, 1, -1475,
-        0, 1, 1, -1, -1410,
-        0, 1, 0, -1, -1344,
-        1, 0, 0, -1, -1335,
-        0, 0, 3, 1, 1107,
-        4, 0, 0, -1, 1021,
-        4, 0, -1, 1, 833,
-        0, 0, 1, -3, 777,
-        4, 0, -2, 1, 671,
-        2, 0, 0, -3, 607,
-        2, 0, 2, -1, 596,
-        2, -1, 1, -1, 491,
-        2, 0, -2, 1, -451,
-        0, 0, 3, -1, 439,
-        2, 0, 2, 1, 422,
-        2, 0, -3, -1, 421,
-        2, 1, -1, 1, -366,
-        2, 1, 0, 1, -351,
-        4, 0, 0, 1, 331,
-        2, -1, 1, 1, 315,
-        2, -2, 0, -1, 302,
-        0, 0, 1, 3, -283,
-        2, 1, 1, -1, -229,
-        1, 1, 0, -1, 223,
-        1, 1, 0, 1, 223,
-        0, 1, -2, -1, -220,
-        2, 1, -1, -1, -220,
-        1, 0, 1, 1, -185,
-        2, -1, -2, -1, 181,
-        0, 1, 2, 1, -177,
-        4, 0, -2, -1, 176,
-        4, -1, -1, -1, 166,
-        1, 0, 1, -1, -164,
-        4, 0, 1, -1, 132,
-        1, 0, -1, -1, -119,
-        4, -1, 0, -1, 115,
-        2, -2, 0, 1, 107
-    ];
-
-    private static function toDays(DateTime $date)
+    /**
+     * Converts a DateTime instance to Julian days offset from J2000.
+     */
+    private static function toDays(DateTime $date): float
     {
         $timestamp = $date->getTimestamp() + (float) $date->format('u') / 1000000;
         return ($timestamp * 1000) / self::DAY_MS - 0.5 + self::J1970 - self::J2000;
     }
 
-    private static function deltaT($d)
+    /**
+     * Calculates the Terrestrial Time offset (Delta T) for Julian day offset.
+     */
+    private static function deltaT(float $d): float
     {
         $y = 2000 + $d / 365.2425;
         if ($y < 1920) {
@@ -176,28 +62,43 @@ class SunCalc
         return -20 + 32 * $t * $t - 0.5628 * (2150 - $y);
     }
 
-    private static function toDaysTT($d)
+    /**
+     * Converts J2000 days to Terrestrial Time J2000 days.
+     */
+    private static function toDaysTT(float $d): float
     {
         return $d + self::deltaT($d) / 86400;
     }
 
-    private static function azimuth($H, $phi, $dec)
+    /**
+     * Calculates the horizontal coordinate Azimuth.
+     */
+    private static function azimuth(float $H, float $phi, float $dec): float
     {
         $val = atan2(sin($H), cos($H) * sin($phi) - tan($dec) * cos($phi)) / self::RAD + 540;
         return fmod($val, 360);
     }
 
-    private static function altitude($H, $phi, $dec)
+    /**
+     * Calculates the horizontal coordinate Altitude.
+     */
+    private static function altitude(float $H, float $phi, float $dec): float
     {
         return asin(sin($phi) * sin($dec) + cos($phi) * cos($dec) * cos($H));
     }
 
-    private static function siderealTime($d, $lw)
+    /**
+     * Calculates mean sidereal time.
+     */
+    private static function siderealTime(float $d, float $lw): float
     {
         return self::RAD * (280.46061837 + 360.98564736629 * $d) - $lw;
     }
 
-    private static function astroRefraction($h)
+    /**
+     * Calculates atmospheric refraction correction for elevation.
+     */
+    private static function astroRefraction(float $h): float
     {
         if ($h < 0) {
             $h = 0;
@@ -205,9 +106,12 @@ class SunCalc
         return 0.0002967 / tan($h + 0.00312536 / ($h + 0.08901179));
     }
 
-    private static function sunCoords($d)
+    /**
+     * Calculates spherical coordinates (RA/Dec) for the Sun.
+     */
+    private static function sunCoords(float $d): array
     {
-        $t = $d / 36525;
+        $t = $d / 36525; // centuries since J2000
         $L0 = self::RAD * (280.46646 + $t * (36000.76983 + $t * 0.0003032));
         $M = self::RAD * (357.52911 + $t * (35999.05029 - $t * 0.0001537));
         $sinM = sin($M);
@@ -224,7 +128,10 @@ class SunCalc
         ];
     }
 
-    public static function getPosition(DateTime $date, $lat, $lng)
+    /**
+     * Returns the position of the Sun for a given date, latitude, and longitude.
+     */
+    public static function getPosition(DateTime $date, float $lat, float $lng): array
     {
         $lw = self::RAD * -$lng;
         $phi = self::RAD * $lat;
@@ -240,7 +147,10 @@ class SunCalc
         ];
     }
 
-    private static function nutationObliquity($t)
+    /**
+     * Calculates nutation in longitude and obliquity.
+     */
+    private static function nutationObliquity(float $t): array
     {
         $om = self::RAD * (125.04452 - 1934.136261 * $t);
         $ls = self::RAD * (280.4665 + 36000.7698 * $t);
@@ -254,9 +164,12 @@ class SunCalc
         ];
     }
 
-    private static function moonCoords($d)
+    /**
+     * Calculates spherical coordinates (RA/Dec) and distance for the Moon.
+     */
+    private static function moonCoords(float $d): array
     {
-        $t = $d / 36525;
+        $t = $d / 36525; // centuries since J2000
 
         $Lp = 218.3164477 + $t * (481267.88123421 + $t * (-0.0015786 + $t * (1 / 538841 - $t / 65194000)));
         $D = 297.8501921 + $t * (445267.1114034 + $t * (-0.0018819 + $t * (1 / 545868 - $t / 113065000)));
@@ -277,21 +190,21 @@ class SunCalc
         $sr = 0;
         $sb = 0;
 
-        $lonLen = count(self::$moonLon);
+        $lonLen = count(MoonData::$moonLon);
         for ($i = 0; $i < $lonLen; $i += 6) {
-            $m = self::$moonLon[$i + 1];
-            $arg = self::$moonLon[$i] * $Dr + $m * $Mr + self::$moonLon[$i + 2] * $Mpr + self::$moonLon[$i + 3] * $Fr;
+            $m = MoonData::$moonLon[$i + 1];
+            $arg = MoonData::$moonLon[$i] * $Dr + $m * $Mr + MoonData::$moonLon[$i + 2] * $Mpr + MoonData::$moonLon[$i + 3] * $Fr;
             $f = ($m === 1 || $m === -1) ? $E : (($m === 2 || $m === -2) ? $E * $E : 1);
-            $sl += self::$moonLon[$i + 4] * $f * sin($arg);
-            $sr += self::$moonLon[$i + 5] * $f * cos($arg);
+            $sl += MoonData::$moonLon[$i + 4] * $f * sin($arg);
+            $sr += MoonData::$moonLon[$i + 5] * $f * cos($arg);
         }
 
-        $latLen = count(self::$moonLat);
+        $latLen = count(MoonData::$moonLat);
         for ($i = 0; $i < $latLen; $i += 5) {
-            $m = self::$moonLat[$i + 1];
-            $arg = self::$moonLat[$i] * $Dr + $m * $Mr + self::$moonLat[$i + 2] * $Mpr + self::$moonLat[$i + 3] * $Fr;
+            $m = MoonData::$moonLat[$i + 1];
+            $arg = MoonData::$moonLat[$i] * $Dr + $m * $Mr + MoonData::$moonLat[$i + 2] * $Mpr + MoonData::$moonLat[$i + 3] * $Fr;
             $f = ($m === 1 || $m === -1) ? $E : (($m === 2 || $m === -2) ? $E * $E : 1);
-            $sb += self::$moonLat[$i + 4] * $f * sin($arg);
+            $sb += MoonData::$moonLat[$i + 4] * $f * sin($arg);
         }
 
         $A1r = self::RAD * $A1;
@@ -311,7 +224,10 @@ class SunCalc
         ];
     }
 
-    public static function getMoonIllumination(DateTime $date)
+    /**
+     * Calculates the Moon's phase fraction, phase angle, and illuminated disk fraction.
+     */
+    public static function getMoonIllumination(DateTime $date): array
     {
         $d = self::toDays($date);
         $s = self::sunCoords($d);
@@ -341,7 +257,10 @@ class SunCalc
         ];
     }
 
-    public static function getMoonPosition(DateTime $date, $lat, $lng)
+    /**
+     * Returns the position of the Moon for a given date, latitude, and longitude.
+     */
+    public static function getMoonPosition(DateTime $date, float $lat, float $lng): array
     {
         $lw = self::RAD * -$lng;
         $phi = self::RAD * $lat;
