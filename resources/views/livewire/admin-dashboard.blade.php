@@ -57,6 +57,79 @@
             </div>
         </div>
 
+        <!-- System Operations & API Usage Tracker -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <span class="mr-2">⚙️</span> System Operations
+                </h2>
+                <p class="text-sm text-slate-400">Trigger manual updates of the weather forecast data and ISS transit calculations. These operations usually run automatically via the daily scheduler.</p>
+                
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button 
+                        wire:click="triggerWeatherFetch" 
+                        wire:loading.attr="disabled" 
+                        class="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-5 rounded-xl shadow transition-all duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto"
+                    >
+                        <span wire:loading.remove wire:target="triggerWeatherFetch">🌤️ Run Weather Fetch</span>
+                        <span wire:loading wire:target="triggerWeatherFetch" class="inline-flex items-center space-x-2">
+                            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Fetching...</span>
+                        </span>
+                    </button>
+
+                    <button 
+                        wire:click="triggerTransitCalculation" 
+                        wire:loading.attr="disabled" 
+                        class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-5 rounded-xl shadow transition-all duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto"
+                    >
+                        <span wire:loading.remove wire:target="triggerTransitCalculation">🛰️ Run ISS Calculations</span>
+                        <span wire:loading wire:target="triggerTransitCalculation" class="inline-flex items-center space-x-2">
+                            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Propagating...</span>
+                        </span>
+                    </button>
+                </div>
+
+                @if($sysMessage)
+                    <div class="mt-4 p-4 rounded-xl text-sm font-semibold {{ $sysMessageType === 'success' ? 'bg-green-950/40 text-green-300 border border-green-800' : 'bg-red-950/40 text-red-300 border border-red-800' }}">
+                        {{ $sysMessage }}
+                    </div>
+                @endif
+            </div>
+
+            <!-- API Status Tracker -->
+            <div class="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <span class="mr-2">📈</span> API Usage Limits
+                </h2>
+                <p class="text-sm text-slate-400">Open-Meteo allows up to 10,000 API requests per day on their free tier. Keep track of daily calls to verify scheduling limits.</p>
+                
+                <div class="space-y-4 pt-2">
+                    <div>
+                        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5">
+                            <span>DAILY API CALLS</span>
+                            <span class="font-mono">{{ $apiCallsToday }} / 10,000 requests</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2.5 rounded-full" style="width: {{ min(100, ($apiCallsToday / 10000) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-900/50 border border-slate-700/50 p-3 rounded-xl">
+                            <span class="block text-slate-500 font-medium">THIS WEEK</span>
+                            <span class="text-lg font-bold text-slate-200 mt-1 block">{{ $apiCallsWeek }} requests</span>
+                        </div>
+                        <div class="bg-slate-900/50 border border-slate-700/50 p-3 rounded-xl">
+                            <span class="block text-slate-500 font-medium">THIS MONTH</span>
+                            <span class="text-lg font-bold text-slate-200 mt-1 block">{{ $apiCallsMonth }} requests</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

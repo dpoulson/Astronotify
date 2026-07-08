@@ -25,14 +25,16 @@ class ISSTransitSummary extends Mailable implements ShouldQueue
 
     public $transits;
     public $userName;
+    public $unsubscribeUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($transits, $userName)
+    public function __construct($transits, \App\Models\User $user)
     {
         $this->transits = $transits;
-        $this->userName = $userName;
+        $this->userName = $user->name;
+        $this->unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute('notifications.manage', ['user' => $user->id]);
     }
 
     /**

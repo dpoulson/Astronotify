@@ -170,8 +170,8 @@ class FetchWeatherData extends Command
                         \Illuminate\Support\Facades\Log::error("weather:fetch DB error for location {$location->id} on {$dateStr}: " . $e->getMessage());
                     }
 
-                    // Collect alert data if newly optimal
-                    if ($isOptimal && !$alreadyWasOptimal) {
+                    // Collect alert data if newly optimal and email alerts are enabled for this location
+                    if ($isOptimal && !$alreadyWasOptimal && $location->notify_stargazing_alerts) {
                         $userAlerts[$location->user_id]['user'] = $location->user;
                         $userAlerts[$location->user_id]['alerts'][] = [
                             'location_name' => $location->name,
@@ -192,7 +192,7 @@ class FetchWeatherData extends Command
                 $alerts = $data['alerts'];
                 
                 try {
-                    Mail::to($user->email)->queue(new StargazingSummary($alerts, $user->name));
+                    Mail::to($user->email)->queue(new StargazingSummary($alerts, $user));
                     $this->info("Summary alert queued for {$user->name} (" . count($alerts) . " nights)");
                 } catch (\Exception $e) {
                     Log::error("Failed to queue weather summary email for User ID {$userId}: " . $e->getMessage());

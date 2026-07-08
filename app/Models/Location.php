@@ -36,6 +36,7 @@ class Location extends Model
         'is_active',
         'notify_iss_sun_transit',
         'notify_iss_moon_transit',
+        'notify_stargazing_alerts',
     ];
 
     protected function casts(): array
@@ -48,6 +49,7 @@ class Location extends Model
             'is_active' => 'boolean',
             'notify_iss_sun_transit' => 'boolean',
             'notify_iss_moon_transit' => 'boolean',
+            'notify_stargazing_alerts' => 'boolean',
         ];
     }
 
@@ -64,5 +66,44 @@ class Location extends Model
     public function transits()
     {
         return $this->hasMany(ISSTransit::class);
+    }
+
+    public function reevaluateConditions(): void
+    {
+        foreach ($this->conditions()->get() as $condition) {
+            $forecastHours = $condition->forecast_data;
+            if (!is_array($forecastHours) || empty($forecastHours)) {
+                continue;
+            }
+
+            $isOptimal = false;
+            $clearConsecutive = 0;
+            $maxClear = 0;
+            $nightLength = count($forecastHours);
+
+            if ($nightLength >= $this->min_night_length_hours) {
+                foreach ($forecastHours as $hourData) {
+                    $cloud = $hourData['cloud'] ?? 100;
+                    $wind = $hourData['wind'] ?? 100;
+
+                    if ($cloud <= $this->max_cloud_cover && $wind <= $this->max_wind_speed) {
+                        $clearConsecutive++;
+                        if ($clearConsecutive > $maxClear) {
+                            $maxClear = $clearConsecutive;
+                        }
+                    } else {
+                        $clearConsecutive = 0;
+                    }
+                }
+
+                if ($maxClear >= $this->min_clear_hours) {
+                    $isOptimal = true;
+                }
+            }
+
+            $condition->update([
+                'is_optimal' => $isOptimal,
+            ]);
+        }
     }
 }

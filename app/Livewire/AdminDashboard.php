@@ -10,6 +10,35 @@ use Illuminate\Support\Facades\DB;
 
 class AdminDashboard extends Component
 {
+    public $sysMessage = null;
+    public $sysMessageType = 'success';
+
+    public function triggerWeatherFetch()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('weather:fetch');
+            $this->sysMessage = 'Weather forecast data fetched and processed successfully!';
+            $this->sysMessageType = 'success';
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        } catch (\Exception $e) {
+            $this->sysMessage = 'Failed to run weather fetch: ' . $e->getMessage();
+            $this->sysMessageType = 'error';
+        }
+    }
+
+    public function triggerTransitCalculation()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('weather:iss-transits');
+            $this->sysMessage = 'ISS orbital transits calculated successfully!';
+            $this->sysMessageType = 'success';
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        } catch (\Exception $e) {
+            $this->sysMessage = 'Failed to run transit calculations: ' . $e->getMessage();
+            $this->sysMessageType = 'error';
+        }
+    }
+
     public function render()
     {
         $stats = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats_v2', 3600, function () {

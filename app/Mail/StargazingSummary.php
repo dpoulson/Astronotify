@@ -26,14 +26,16 @@ class StargazingSummary extends Mailable implements ShouldQueue
     
     public $alerts;
     public $userName;
+    public $unsubscribeUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($alerts, $userName)
+    public function __construct($alerts, \App\Models\User $user)
     {
         $this->alerts = $alerts;
-        $this->userName = $userName;
+        $this->userName = $user->name;
+        $this->unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute('notifications.manage', ['user' => $user->id]);
     }
 
     /**

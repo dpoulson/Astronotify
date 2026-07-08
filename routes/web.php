@@ -7,10 +7,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/login-as-test-user', function () {
-    auth()->loginUsingId(1);
-    return redirect('/dashboard');
-});
+Route::get('/notifications/manage/{user}', \App\Livewire\ManageNotifications::class)
+    ->name('notifications.manage');
+
+if (app()->environment('local', 'testing')) {
+    Route::get('/login-as-test-user', function () {
+        auth()->loginUsingId(1);
+        return redirect('/dashboard');
+    });
+}
 
 // Google Socialite Routes
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');

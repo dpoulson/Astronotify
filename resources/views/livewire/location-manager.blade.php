@@ -29,6 +29,12 @@
             </div>
         @endif
 
+        @if (session()->has('error'))
+            <div class="bg-red-500/20 border border-red-500/50 text-red-300 p-4 rounded-xl backdrop-blur-md">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <!-- Upcoming Nights Panel -->
         @if($upcomingNights->count() > 0)
         <div x-data="{ open: true }" class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-purple-500/30 rounded-3xl p-6 shadow-2xl backdrop-blur-xl mb-8">
@@ -340,8 +346,18 @@
                             </div>
 
                             <div class="border-t border-slate-700 pt-4 space-y-3">
-                                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Transit Notifications</span>
+                                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Notification Settings</span>
                                 
+                                <label class="relative flex items-start cursor-pointer select-none">
+                                    <div class="flex items-center h-5">
+                                        <input type="checkbox" wire:model="notify_stargazing_alerts" class="w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                    </div>
+                                    <div class="ms-3 text-sm">
+                                        <span class="font-medium text-slate-200">Stargazing Weather Alerts 🔔</span>
+                                        <span class="block text-xs text-slate-400">Get notified when stargazing conditions are optimal.</span>
+                                    </div>
+                                </label>
+
                                 <label class="relative flex items-start cursor-pointer select-none">
                                     <div class="flex items-center h-5">
                                         <input type="checkbox" wire:model="notify_iss_sun_transit" class="w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-purple-600 focus:ring-purple-500 cursor-pointer">
@@ -415,6 +431,15 @@
                                     <span>Elev: <span class="text-slate-200">{{ $location->elevation }}m</span></span>
                                 </div>
                                 <div class="flex flex-wrap gap-2 mt-1 mb-4">
+                                    @if($location->notify_stargazing_alerts)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/40 text-emerald-300 border border-emerald-800/60 shadow">
+                                            🔔 Weather Alerts Enabled
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-950/40 text-red-300 border border-red-800/60 shadow">
+                                            🔕 Weather Alerts Disabled
+                                        </span>
+                                    @endif
                                     @if($location->notify_iss_sun_transit)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/40 text-amber-300 border border-amber-800/60 shadow">
                                             ☀️ ISS Solar Transit
@@ -434,6 +459,16 @@
                                 </div>
                             </div>
                             <div class="mt-4 md:mt-0 flex shrink-0 border border-slate-700 p-1 space-x-1 rounded-xl bg-slate-900/50">
+                                <button 
+                                    wire:click="sendTestEmail({{ $location->id }})" 
+                                    wire:loading.attr="disabled"
+                                    x-on:click="$el.blur()" 
+                                    class="p-2 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/30 rounded-lg transition-colors flex items-center justify-center" 
+                                    title="Send Test Email"
+                                >
+                                    <svg wire:loading.remove wire:target="sendTestEmail({{ $location->id }})" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    <div wire:loading wire:target="sendTestEmail({{ $location->id }})" class="w-6 h-6 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                                </button>
                                 <button wire:click="edit({{ $location->id }})" x-on:click="$el.blur()" class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-colors" title="Edit">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
@@ -530,6 +565,65 @@
                                     </div>
                                 @endif
                             @endforeach
+                        </div>
+
+                        <!-- ISS Passes Section -->
+                        <div x-data="{ open: false }" class="border-t border-slate-700/60 pt-4">
+                            <button 
+                                type="button"
+                                @click="open = !open; if(open) { $wire.loadPasses({{ $location->id }}) }; $el.blur()" 
+                                class="w-full flex justify-between items-center text-left focus:outline-none focus:ring-0"
+                            >
+                                <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center">
+                                    <span class="mr-2">🛰️</span> Upcoming ISS Passes
+                                </h4>
+                                <div class="flex items-center space-x-2">
+                                    <div wire:loading wire:target="loadPasses({{ $location->id }})" class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                                    <svg :class="open ? 'transform rotate-180' : ''" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </button>
+                            
+                            <div x-show="open" x-collapse x-cloak class="mt-3">
+                                @if(isset($loadedPasses[$location->id]))
+                                    @if(empty($loadedPasses[$location->id]))
+                                        <div class="text-xs text-slate-500 py-2">No upcoming visible passes in the next 7 days.</div>
+                                    @else
+                                        <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40">
+                                            <table class="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr class="border-b border-slate-800 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                                        <th class="py-2.5 px-3">Date</th>
+                                                        <th class="py-2.5 px-3">Start Time (AOS)</th>
+                                                        <th class="py-2.5 px-3">End Time (LOS)</th>
+                                                        <th class="py-2.5 px-3 text-center">Duration</th>
+                                                        <th class="py-2.5 px-3 text-center">Max Elevation</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($loadedPasses[$location->id] as $pass)
+                                                        <tr class="border-b border-slate-800/40 hover:bg-slate-900/20 text-xs text-slate-300 transition-colors">
+                                                            <td class="py-2.5 px-3 font-semibold text-slate-200">{{ $pass['date'] }}</td>
+                                                            <td class="py-2.5 px-3 text-purple-300 font-semibold">{{ $pass['aos'] }}</td>
+                                                            <td class="py-2.5 px-3 font-mono text-[11px]">{{ $pass['los'] }}</td>
+                                                            <td class="py-2.5 px-3 text-center text-slate-400">{{ $pass['duration'] }} min</td>
+                                                            <td class="py-2.5 px-3 text-center">
+                                                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold {{ $pass['max_el'] >= 40 ? 'bg-green-950/60 text-green-300 border border-green-800' : ($pass['max_el'] >= 20 ? 'bg-amber-950/60 text-amber-300 border border-amber-800' : 'bg-slate-950 text-slate-400 border border-slate-700') }}">
+                                                                    {{ $pass['max_el'] }}°
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="text-xs text-slate-500 py-3 flex items-center justify-center gap-2 bg-slate-950/20 rounded-2xl border border-dashed border-slate-800">
+                                        <div class="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Calculating orbital trajectory...</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @empty

@@ -17,7 +17,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Set up Predict include path and autoloader globally
+        set_include_path(get_include_path() . PATH_SEPARATOR . base_path('app/Libs'));
+        spl_autoload_register(function ($class) {
+            if (strpos($class, 'Predict') === 0) {
+                $file = base_path('app/Libs/' . str_replace('_', '/', $class) . '.php');
+                if (file_exists($file)) {
+                    require_once $file;
+                }
+            }
+        });
     }
 
     /**

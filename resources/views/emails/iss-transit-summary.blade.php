@@ -26,4 +26,10 @@ View Your Dashboard
 
 Clear skies,<br>
 {{ config('app.name') }}
+
+---
+<p style="text-align: center; font-size: 10px; color: #6b7280; margin-top: 20px;">
+    You are receiving this because you enabled ISS transit alerts for one of your locations. 
+    <a href="{{ $unsubscribeUrl }}" style="color: #8b5cf6; text-decoration: underline;">Unsubscribe or Manage notification preferences</a>.
+</p>
 </x-mail::message>
