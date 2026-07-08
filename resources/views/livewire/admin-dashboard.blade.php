@@ -6,7 +6,26 @@
 
 <div class="py-12 bg-slate-950 text-white flex-grow">
     <div class="max-w-8xl mx-auto sm:px-6 lg:px-8 space-y-8">
-        
+        @if($failedEmailCount > 0)
+            <div class="bg-red-950/40 border border-red-800 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-xl">
+                <div class="flex items-center space-x-4">
+                    <span class="text-3xl animate-bounce">⚠️</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-red-300">Outbound Email Failures Detected</h3>
+                        <p class="text-sm text-slate-400">There are <span class="text-white font-bold">{{ $failedEmailCount }}</span> failed email jobs in the queue. This might indicate SMTP connection issues.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3 w-full md:w-auto shrink-0">
+                    <button wire:click="retryAllFailedEmails" class="w-full md:w-auto bg-green-750 hover:bg-green-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow transition-colors text-xs uppercase tracking-wider">
+                        Retry All Failed
+                    </button>
+                    <a href="{{ route('admin.queue') }}" class="w-full md:w-auto bg-slate-805 hover:bg-slate-800 border border-slate-700 text-slate-200 font-semibold py-2.5 px-4 rounded-xl shadow transition-colors text-xs uppercase tracking-wider text-center">
+                        Inspect Queue &rarr;
+                    </a>
+                </div>
+            </div>
+        @endif
+
         <!-- Stats Row -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg flex flex-col justify-between">

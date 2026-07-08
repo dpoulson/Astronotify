@@ -182,7 +182,7 @@ class ISSTransitCalculator
                 }
             }
 
-            $limitDeg = 0.75;
+            $limitDeg = (float) (\App\Models\Setting::where('key', 'conjunction_threshold')->value('value') ?? 0.75);
 
             if ($location->notify_iss_sun_transit && $minSunSep <= $limitDeg && $minSunAlt > 0) {
                 $unix = \Predict_Time::daynum2unix($minSunTime);

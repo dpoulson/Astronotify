@@ -72,4 +72,28 @@ class AdminDashboardTest extends TestCase
             ->assertSet('sysMessageType', 'success')
             ->assertSet('sysMessage', 'ISS orbital transits calculated successfully!');
     }
+
+    public function test_admin_can_retry_all_failed_emails(): void
+    {
+        $user = User::factory()->create(['is_admin' => true]);
+        $this->actingAs($user);
+
+        // Populate a fake failed job
+        \Illuminate\Support\Facades\DB::table('failed_jobs')->insert([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => json_encode(['displayName' => 'TestJob']),
+            'exception' => 'TestException',
+            'failed_at' => now(),
+        ]);
+
+        $this->assertEquals(1, \Illuminate\Support\Facades\DB::table('failed_jobs')->count());
+
+        Livewire::test(\App\Livewire\AdminDashboard::class)
+            ->assertSet('failedEmailCount', 1)
+            ->call('retryAllFailedEmails')
+            ->assertSet('sysMessageType', 'success')
+            ->assertSet('sysMessage', 'All failed jobs have been pushed back to the queue!');
+    }
 }

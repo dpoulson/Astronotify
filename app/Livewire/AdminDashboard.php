@@ -12,6 +12,7 @@ class AdminDashboard extends Component
 {
     public $sysMessage = null;
     public $sysMessageType = 'success';
+    public $failedEmailCount = 0;
 
     public function triggerWeatherFetch()
     {
@@ -39,8 +40,23 @@ class AdminDashboard extends Component
         }
     }
 
+    public function retryAllFailedEmails()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => 'all']);
+            $this->sysMessage = 'All failed jobs have been pushed back to the queue!';
+            $this->sysMessageType = 'success';
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
+        } catch (\Exception $e) {
+            $this->sysMessage = 'Failed to retry jobs: ' . $e->getMessage();
+            $this->sysMessageType = 'error';
+        }
+    }
+
     public function render()
     {
+        $this->failedEmailCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+
         $stats = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats_v2', 3600, function () {
             $totalConditions = WeatherCondition::count();
             $optimalConditions = WeatherCondition::where('is_optimal', true)->count();
@@ -62,9 +78,9 @@ class AdminDashboard extends Component
                 $chartLocations[] = isset($locationRegistrations[$date]) ? $locationRegistrations[$date]->count() : 0;
             }
 
-            $apiCallsToday = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', today())->value('value');
-            $apiCallsWeek = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(6))->sum('value');
-            $apiCallsMonth = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(29))->sum('value');
+            $apiCallsToday = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', today())->value('value');
+            $apiCallsWeek = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(6))->sum('value');
+            $apiCallsMonth = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(29))->sum('value');
 
             return [
                 'totalUsers' => User::count(),
@@ -80,6 +96,8 @@ class AdminDashboard extends Component
                 'apiCallsMonth' => $apiCallsMonth,
             ];
         });
+
+        $stats['failedEmailCount'] = $this->failedEmailCount;
 
         return view('livewire.admin-dashboard', $stats)->layout('layouts.app');
     }

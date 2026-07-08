@@ -311,6 +311,36 @@ class SunCalc
         ];
     }
 
+    public static function getMoonIllumination(DateTime $date)
+    {
+        $d = self::toDays($date);
+        $s = self::sunCoords($d);
+        $m = self::moonCoords($d);
+
+        $sdist = 149598000; // distance from Earth to Sun in km
+
+        $cosPhi = sin($s['dec']) * sin($m['dec']) + cos($s['dec']) * cos($m['dec']) * cos($s['ra'] - $m['ra']);
+        $cosPhi = max(-1.0, min(1.0, $cosPhi));
+        $phi = acos($cosPhi);
+
+        $inc = atan2($sdist * sin($phi), $m['dist'] - $sdist * cos($phi));
+
+        $fraction = (1 + cos($inc)) / 2;
+
+        $angle = atan2(
+            cos($s['dec']) * sin($s['ra'] - $m['ra']),
+            sin($s['dec']) * cos($m['dec']) - cos($s['dec']) * sin($m['dec']) * cos($s['ra'] - $m['ra'])
+        );
+
+        $phase = 0.5 + 0.5 * $inc * ($angle < 0 ? -1 : 1) / self::PI;
+
+        return [
+            'fraction' => $fraction,
+            'phase' => $phase,
+            'angle' => $angle
+        ];
+    }
+
     public static function getMoonPosition(DateTime $date, $lat, $lng)
     {
         $lw = self::RAD * -$lng;

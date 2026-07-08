@@ -22,6 +22,7 @@ class LocationManager extends Component
     public $notify_iss_sun_transit = false;
     public $notify_iss_moon_transit = false;
     public $notify_stargazing_alerts = true;
+    public $bortle = null;
     public $loadedPasses = [];
 
     protected $rules = [
@@ -29,6 +30,7 @@ class LocationManager extends Component
         'latitude' => 'required|numeric|between:-90,90',
         'longitude' => 'required|numeric|between:-180,180',
         'elevation' => 'required|integer|min:-100|max:10000',
+        'bortle' => 'nullable|integer|between:1,9',
         'min_night_length_hours' => 'required|integer|min:1|max:24',
         'min_clear_hours' => 'required|integer|min:1|max:24',
         'max_wind_speed' => 'required|numeric|min:0',
@@ -70,13 +72,14 @@ class LocationManager extends Component
             $this->notify_iss_sun_transit = (bool) $location->notify_iss_sun_transit;
             $this->notify_iss_moon_transit = (bool) $location->notify_iss_moon_transit;
             $this->notify_stargazing_alerts = (bool) $location->notify_stargazing_alerts;
+            $this->bortle = $location->bortle;
             $this->dispatch('open-form');
         }
     }
 
     public function cancelEdit()
     {
-        $this->reset(['editingLocationId', 'name', 'town', 'latitude', 'longitude', 'elevation', 'min_night_length_hours', 'min_clear_hours', 'max_wind_speed', 'max_cloud_cover', 'notify_iss_sun_transit', 'notify_iss_moon_transit', 'notify_stargazing_alerts']);
+        $this->reset(['editingLocationId', 'name', 'town', 'latitude', 'longitude', 'elevation', 'bortle', 'min_night_length_hours', 'min_clear_hours', 'max_wind_speed', 'max_cloud_cover', 'notify_iss_sun_transit', 'notify_iss_moon_transit', 'notify_stargazing_alerts']);
         if (Auth::user()->locations()->count() > 0) {
             $this->dispatch('close-form');
         }
@@ -94,6 +97,7 @@ class LocationManager extends Component
                     'latitude' => $this->latitude,
                     'longitude' => $this->longitude,
                     'elevation' => $this->elevation,
+                    'bortle' => $this->bortle ?: null,
                     'min_night_length_hours' => $this->min_night_length_hours,
                     'min_clear_hours' => $this->min_clear_hours,
                     'max_wind_speed' => $this->max_wind_speed,
@@ -115,6 +119,7 @@ class LocationManager extends Component
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
                 'elevation' => $this->elevation,
+                'bortle' => $this->bortle ?: null,
                 'min_night_length_hours' => $this->min_night_length_hours,
                 'min_clear_hours' => $this->min_clear_hours,
                 'max_wind_speed' => $this->max_wind_speed,

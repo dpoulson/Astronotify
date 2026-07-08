@@ -157,9 +157,6 @@
                                     @if($transit->type === 'sun')
                                     <circle cx="{{ $svgCx }}" cy="{{ $svgCy }}" r="{{ $diskR + 10 }}" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.2"/>
                                     <circle cx="{{ $svgCx }}" cy="{{ $svgCy }}" r="{{ $diskR + 5 }}" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.3"/>
-                                    @else
-                                    {{-- Dark limb / terminator --}}
-                                    <circle cx="{{ $svgCx + 8 }}" cy="{{ $svgCy }}" r="{{ $diskR }}" fill="#1e293b" clip-path="url(#disk-clip-{{ $transit->id }})"/>
                                     @endif
 
                                     {{-- Main body disk --}}
@@ -173,6 +170,18 @@
                                     <circle cx="{{ $svgCx - 5  }}" cy="{{ $svgCy + 8  }}" r="5"  fill="#64748b" fill-opacity="0.4"/>
                                     <circle cx="{{ $svgCx + 20 }}" cy="{{ $svgCy - 10 }}" r="4"  fill="#64748b" fill-opacity="0.5"/>
                                     <circle cx="{{ $svgCx - 20 }}" cy="{{ $svgCy + 5  }}" r="3"  fill="#64748b" fill-opacity="0.6"/>
+
+                                    {{-- Dynamic Moon Phase shadow --}}
+                                    @php
+                                        $moon = $transit->getMoonPhase();
+                                        $P = $moon['phase'];
+                                        if ($P <= 0.5) {
+                                            $shadowCx = $svgCx - (2 * $diskR * ($P / 0.5));
+                                        } else {
+                                            $shadowCx = ($svgCx + 2 * $diskR) - (2 * $diskR * (($P - 0.5) / 0.5));
+                                        }
+                                    @endphp
+                                    <circle cx="{{ $shadowCx }}" cy="{{ $svgCy }}" r="{{ $diskR }}" fill="#0b0f19" clip-path="url(#disk-clip-{{ $transit->id }})" fill-opacity="0.85"/>
                                     @endif
 
                                     {{-- Disk outline --}}
@@ -239,6 +248,13 @@
                                     </span>
                                     <span class="text-[10px] text-slate-400">{{ \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS') }}</span>
                                 </div>
+                                @if($transit->type === 'moon')
+                                    @php $moon = $transit->getMoonPhase(); @endphp
+                                    <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                                        <span>Moon Phase:</span>
+                                        <span class="font-semibold text-slate-300 flex items-center gap-1">{{ $moon['emoji'] }} {{ $moon['name'] }} ({{ $moon['illumination'] }}%)</span>
+                                    </div>
+                                @endif
                                 <div class="text-purple-300 font-extrabold text-lg leading-none">
                                     {{ \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('H:i:s') }}
                                 </div>
@@ -321,6 +337,24 @@
                                     <input type="number" wire:model="elevation" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 placeholder-slate-500" placeholder="0">
                                     @error('elevation') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                                 </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300">Bortle Light Pollution Class</label>
+                                <select wire:model="bortle" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 cursor-pointer">
+                                    <option value="">Unknown / Select Class</option>
+                                    <option value="1">Class 1: Excellent Dark Sky (🌑)</option>
+                                    <option value="2">Class 2: Typical Truly Dark Sky (🌌)</option>
+                                    <option value="3">Class 3: Rural Sky (🌌)</option>
+                                    <option value="4">Class 4: Rural/Suburban Transition</option>
+                                    <option value="5">Class 5: Suburban Sky</option>
+                                    <option value="6">Class 6: Bright Suburban Sky</option>
+                                    <option value="7">Class 7: Suburban/Urban Transition</option>
+                                    <option value="8">Class 8: City Sky</option>
+                                    <option value="9">Class 9: Inner-City Sky (🏙️)</option>
+                                </select>
+                                <p class="text-xs text-slate-400 mt-1">Don't know yours? Click <a href="https://www.lightpollutionmap.info/#zoom=10&lat={{ $latitude ?: 54 }}&lon={{ $longitude ?: -2 }}" target="_blank" class="text-purple-400 hover:text-purple-300 underline">LightPollutionMap.info</a> to look up your site.</p>
+                                @error('bortle') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -425,10 +459,18 @@
                         <div class="flex flex-col justify-between items-start md:flex-row md:items-center">
                             <div>
                                 <h3 class="text-2xl font-bold text-white">{{ $location->name }}</h3>
-                                <div class="text-slate-400 text-sm mt-1 mb-3 flex space-x-4">
+                                <div class="text-slate-400 text-sm mt-1 mb-3 flex flex-wrap items-center gap-y-2 gap-x-4">
                                     <span>Lat: <span class="text-slate-200">{{ $location->latitude }}</span></span>
                                     <span>Lon: <span class="text-slate-200">{{ $location->longitude }}</span></span>
                                     <span>Elev: <span class="text-slate-200">{{ $location->elevation }}m</span></span>
+                                    @if($location->bortle)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-900/80 border border-slate-700 text-xs text-slate-300" title="Bortle Light Pollution Class">
+                                            🌌 Bortle {{ $location->bortle }}
+                                        </span>
+                                    @endif
+                                    <a href="https://www.lightpollutionmap.info/#zoom=12&lat={{ $location->latitude }}&lon={{ $location->longitude }}" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 hover:underline flex items-center">
+                                        🗺️ Light Pollution Map &rarr;
+                                    </a>
                                 </div>
                                 <div class="flex flex-wrap gap-2 mt-1 mb-4">
                                     @if($location->notify_stargazing_alerts)
@@ -500,12 +542,14 @@
                                         class="border rounded-2xl p-3 flex flex-col items-center justify-between text-center min-h-[140px] w-full transition-all cursor-pointer"
                                     >
                                         <span class="text-xs font-bold text-slate-400">{{ \Carbon\Carbon::parse($cond->date)->format('D d') }}</span>
-                                        <div class="my-1.5">
+                                        <div class="my-1.5 flex items-center justify-center space-x-1.5">
                                             @if($cond->is_optimal)
                                                 <span class="text-2xl" title="Optimal conditions! Clear night.">✨</span>
                                             @else
                                                 <span class="text-2xl" title="Sub-optimal stargazing conditions.">☁️</span>
                                             @endif
+                                            @php $moon = $cond->getMoonPhase(); @endphp
+                                            <span class="text-xl" title="{{ $moon['name'] }} ({{ $moon['illumination'] }}% illuminated)">{{ $moon['emoji'] }}</span>
                                         </div>
                                         <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full {{ $cond->is_optimal ? 'bg-purple-950/60 text-purple-300 border border-purple-800' : 'bg-slate-800 text-slate-400 border border-slate-700' }}">
                                             {{ $cond->is_optimal ? 'Clear' : 'Poor' }}
@@ -543,6 +587,23 @@
                                                 </h5>
                                                 <span class="text-[10px] text-slate-400">Values evaluated for clear-sky slots</span>
                                             </div>
+
+                                            @php $moon = $cond->getMoonPhase(); @endphp
+                                            <div class="flex items-center space-x-3 bg-slate-900/30 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-300">
+                                                <span class="text-3xl select-none">{{ $moon['emoji'] }}</span>
+                                                <div class="flex-1">
+                                                    <span class="block font-bold text-slate-200">{{ $moon['name'] }}</span>
+                                                    <span class="block text-[10px] text-slate-500">Illumination: <span class="text-purple-300 font-semibold">{{ $moon['illumination'] }}%</span></span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 max-w-[250px] text-right hidden sm:block">
+                                                    @if($moon['illumination'] >= 70)
+                                                        🌕 <span class="text-amber-300 font-medium">Bright moon</span> will affect deep-sky contrast. Good for planets, double stars, or the moon itself.
+                                                    @else
+                                                        🌌 <span class="text-emerald-300 font-medium font-semibold">Dark skies</span>! Excellent window for faint nebulae, galaxies, and star clusters.
+                                                    @endif
+                                                </div>
+                                            </div>
+
                                             <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                                                 @foreach($cond->forecast_data as $h)
                                                     @php
@@ -748,8 +809,6 @@
                     <circle cx="{{ $mCx }}" cy="{{ $mCy }}" r="{{ $mR + 10 }}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-opacity="0.25"/>
                     <circle cx="{{ $mCx }}" cy="{{ $mCy }}" r="{{ $mR }}" fill="url(#mbody-{{ $transit->id }})" filter="url(#mglow-{{ $transit->id }})"/>
                     @else
-                    {{-- Moon terminator --}}
-                    <circle cx="{{ $mCx + 20 }}" cy="{{ $mCy }}" r="{{ $mR }}" fill="#0f172a" clip-path="url(#mdisk-clip-{{ $transit->id }})"/>
                     <circle cx="{{ $mCx }}" cy="{{ $mCy }}" r="{{ $mR }}" fill="url(#mbody-{{ $transit->id }})"/>
                     {{-- Craters (scaled up) --}}
                     <circle cx="{{ $mCx - 46 }}" cy="{{ $mCy - 38 }}" r="16" fill="#64748b" fill-opacity="0.5"/>
@@ -758,6 +817,18 @@
                     <circle cx="{{ $mCx + 52 }}" cy="{{ $mCy - 26 }}" r="10" fill="#64748b" fill-opacity="0.45"/>
                     <circle cx="{{ $mCx - 52 }}" cy="{{ $mCy + 13 }}" r="8"  fill="#64748b" fill-opacity="0.5"/>
                     <circle cx="{{ $mCx + 15 }}" cy="{{ $mCy - 60 }}" r="6"  fill="#64748b" fill-opacity="0.4"/>
+
+                    {{-- Dynamic Moon Phase shadow --}}
+                    @php
+                        $moon = $transit->getMoonPhase();
+                        $P = $moon['phase'];
+                        if ($P <= 0.5) {
+                            $mShadowCx = $mCx - (2 * $mR * ($P / 0.5));
+                        } else {
+                            $mShadowCx = ($mCx + 2 * $mR) - (2 * $mR * (($P - 0.5) / 0.5));
+                        }
+                    @endphp
+                    <circle cx="{{ $mShadowCx }}" cy="{{ $mCy }}" r="{{ $mR }}" fill="#020617" clip-path="url(#mdisk-clip-{{ $transit->id }})" fill-opacity="0.85"/>
                     @endif
 
                     {{-- Disk outline --}}
@@ -832,6 +903,18 @@
                         <div class="text-slate-400 text-xs uppercase tracking-wider mb-0.5">Location</div>
                         <div class="text-slate-200 font-semibold">{{ $transit->location->name }}</div>
                     </div>
+
+                    @if($transit->type === 'moon')
+                    @php $moon = $transit->getMoonPhase(); @endphp
+                    <div>
+                        <div class="text-slate-400 text-xs uppercase tracking-wider mb-0.5">Moon Phase</div>
+                        <div class="text-slate-200 font-semibold flex items-center gap-1.5">
+                            <span class="text-xl">{{ $moon['emoji'] }}</span>
+                            <span>{{ $moon['name'] }}</span>
+                            <span class="text-xs text-slate-500">({{ $moon['illumination'] }}% illuminated)</span>
+                        </div>
+                    </div>
+                    @endif
 
                     <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
                         <div class="bg-slate-800/60 rounded-xl p-3">

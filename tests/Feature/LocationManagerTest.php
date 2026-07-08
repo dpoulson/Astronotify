@@ -183,4 +183,68 @@ class LocationManagerTest extends TestCase
             return $mail->hasTo($user->email) && $mail->location->id === $location->id;
         });
     }
+
+    public function test_location_bortle_can_be_saved_and_validated(): void
+    {
+        // Mock CelesTrak response
+        \Illuminate\Support\Facades\Http::preventStrayRequests();
+        \Illuminate\Support\Facades\Http::fake([
+            'celestrak.org/*' => \Illuminate\Support\Facades\Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200)
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->set('name', 'Hilltop Observatory')
+            ->set('latitude', 54.0)
+            ->set('longitude', -2.8)
+            ->set('elevation', 150)
+            ->set('bortle', 3)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $location = Location::where('name', 'Hilltop Observatory')->first();
+        $this->assertNotNull($location);
+        $this->assertEquals(3, $location->bortle);
+
+        // Validation test - must be between 1 and 9
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->set('name', 'Hilltop Observatory')
+            ->set('latitude', 54.0)
+            ->set('longitude', -2.8)
+            ->set('elevation', 150)
+            ->set('bortle', 10)
+            ->call('save')
+            ->assertHasErrors(['bortle' => 'between']);
+    }
+
+    public function test_transit_moon_phase_is_calculated_correctly(): void
+    {
+        $user = User::factory()->create();
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Backyard',
+            'latitude' => 54.0,
+            'longitude' => -2.8,
+            'elevation' => 10,
+            'is_active' => true,
+        ]);
+
+        $transit = \App\Models\ISSTransit::create([
+            'location_id' => $location->id,
+            'type' => 'moon',
+            'time' => '2026-06-22 00:00:00',
+            'separation_degrees' => 0.1,
+            'altitude_degrees' => 45.0,
+            'azimuth_degrees' => 180.0,
+            'is_exact_transit' => true,
+        ]);
+
+        $moon = $transit->getMoonPhase();
+
+        $this->assertEquals('First Quarter', $moon['name']);
+        $this->assertEquals('🌓', $moon['emoji']);
+        $this->assertEquals(51, $moon['illumination']);
+    }
 }
