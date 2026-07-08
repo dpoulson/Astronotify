@@ -105,12 +105,6 @@ class ISSTransitCalculator
                         $minSunAlt = $sunPos['altitude'];
                         $minSunAz = $sunPos['azimuth'];
                     }
-                    if ($sep < 3.0) {
-                        $sunPathPoints[] = [
-                            'dx' => round($sat->az  - $sunPos['azimuth'],  4),
-                            'dy' => round($sat->el  - $sunPos['altitude'], 4),
-                        ];
-                    }
                 }
 
                 if ($location->notify_iss_moon_transit) {
@@ -121,12 +115,6 @@ class ISSTransitCalculator
                         $minMoonTime = $t;
                         $minMoonAlt = $moonPos['altitude'];
                         $minMoonAz = $moonPos['azimuth'];
-                    }
-                    if ($sep < 3.0) {
-                        $moonPathPoints[] = [
-                            'dx' => round($sat->az  - $moonPos['azimuth'],  4),
-                            'dy' => round($sat->el  - $moonPos['altitude'], 4),
-                        ];
                     }
                 }
             }
@@ -183,6 +171,54 @@ class ISSTransitCalculator
             }
 
             $limitDeg = (float) (\App\Models\Setting::where('key', 'conjunction_threshold')->value('value') ?? 0.75);
+
+            $sunPathPoints = [];
+            if ($location->notify_iss_sun_transit && $minSunSep <= $limitDeg && $minSunAlt > 0) {
+                $startPath = max($pass->aos, $minSunTime - (30.0 / 86400.0));
+                $endPath = min($pass->los, $minSunTime + (30.0 / 86400.0));
+                $pathStep = 2.0 / 86400.0;
+
+                for ($t = $startPath; $t <= $endPath; $t += $pathStep) {
+                    try {
+                        $predict->predict_calc($sat, $qth, $t);
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+
+                    $unix = \Predict_Time::daynum2unix($t);
+                    $date = new \DateTime("@" . round($unix));
+                    $sunPos = \App\Libs\SunCalc::getPosition($date, $qth->lat, $qth->lon);
+                    
+                    $sunPathPoints[] = [
+                        'dx' => round($sat->az  - $sunPos['azimuth'],  4),
+                        'dy' => round($sat->el  - $sunPos['altitude'], 4),
+                    ];
+                }
+            }
+
+            $moonPathPoints = [];
+            if ($location->notify_iss_moon_transit && $minMoonSep <= $limitDeg && $minMoonAlt > 0) {
+                $startPath = max($pass->aos, $minMoonTime - (30.0 / 86400.0));
+                $endPath = min($pass->los, $minMoonTime + (30.0 / 86400.0));
+                $pathStep = 2.0 / 86400.0;
+
+                for ($t = $startPath; $t <= $endPath; $t += $pathStep) {
+                    try {
+                        $predict->predict_calc($sat, $qth, $t);
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+
+                    $unix = \Predict_Time::daynum2unix($t);
+                    $date = new \DateTime("@" . round($unix));
+                    $moonPos = \App\Libs\SunCalc::getMoonPosition($date, $qth->lat, $qth->lon);
+                    
+                    $moonPathPoints[] = [
+                        'dx' => round($sat->az  - $moonPos['azimuth'],  4),
+                        'dy' => round($sat->el  - $moonPos['altitude'], 4),
+                    ];
+                }
+            }
 
             if ($location->notify_iss_sun_transit && $minSunSep <= $limitDeg && $minSunAlt > 0) {
                 $unix = \Predict_Time::daynum2unix($minSunTime);

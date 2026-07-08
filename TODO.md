@@ -26,7 +26,7 @@
 
 ## 🔭 ISS / Orbital
 - [x] H **Re-run `weather:iss-transits` after adding a new location** — currently the user has to trigger this manually; consider auto-triggering it from the `save()` Livewire action (queue a job)
-- [ ] L **Path point density** — the coarse 10-second sampling gives very few path points for fast-moving ISS passes; consider a finer pass (~2s) within ±30s of the closest approach to get a more accurate chord
+- [x] L **Path point density** — the coarse 10-second sampling gives very few path points for fast-moving ISS passes; consider a finer pass (~2s) within ±30s of the closest approach to get a more accurate chord
 - [x] M **Conjunction threshold setting** — currently hard-coded at 0.75°; expose this in the admin settings page
 - [x] H **ISS pass schedule view** — a simple table of all upcoming passes (not just transits) for each location with AOS/LOS time and max elevation
 - [x] L **Hardcoded values in SunCalc** — There are a lot of hardcoded values in SunCalc.php functions, should these be replaced with named constants?
