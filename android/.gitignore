@@ -1,0 +1,21 @@
+# Gradle & Build caches
+.gradle/
+build/
+app/build/
+**/build/
+
+# Package outputs
+*.apk
+*.aab
+*.ap_
+
+# Private signing keys & local config
+*.keystore
+*.jks
+local.properties
+
+# IDE & Caching
+.idea/
+*.iml
+.cxx/
+.externalNativeBuild/
