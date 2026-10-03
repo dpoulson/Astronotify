@@ -21,6 +21,18 @@ if (app()->environment('local', 'testing')) {
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/faq', function () {
+    return view('faq');
+})->name('faq');
+
+Route::get('/help', function () {
+    return redirect()->route('faq');
+})->name('help');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -29,10 +41,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-
-    Route::get('/about', function () {
-        return view('about');
-    })->name('about');
 
     Route::get('/admin', \App\Livewire\AdminDashboard::class)
         ->middleware('can:admin')

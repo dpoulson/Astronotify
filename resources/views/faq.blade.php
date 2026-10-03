@@ -1,14 +1,18 @@
+@php
+    $pageTitle = 'Help & Frequently Asked Questions';
+@endphp
+
 @if(Auth::check())
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-slate-800 dark:text-gray-200 leading-tight">
-            {{ __('About Astronotify') }}
+            {{ __('Help & FAQ') }}
         </h2>
     </x-slot>
 
     <div class="py-12 bg-slate-950 flex-grow text-white">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            @include('partials.about-content')
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            @include('partials.faq-content')
         </div>
     </div>
 </x-app-layout>
@@ -23,8 +27,8 @@
                     <span class="font-bold text-lg tracking-tight text-white">Astronotify</span>
                 </a>
                 <div class="flex items-center gap-6">
-                    <a href="{{ route('about') }}" class="text-sm font-medium text-purple-400">About</a>
-                    <a href="{{ route('faq') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Help &amp; FAQ</a>
+                    <a href="{{ route('about') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About</a>
+                    <a href="{{ route('faq') }}" class="text-sm font-medium text-purple-400">Help &amp; FAQ</a>
                     <a href="{{ route('login') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Log in</a>
                     <a href="{{ route('register') }}" class="text-xs font-semibold px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg transition-transform transform hover:scale-105">Get Started</a>
                 </div>
@@ -32,7 +36,7 @@
         </nav>
 
         <div class="py-12 flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 w-full">
-            @include('partials.about-content')
+            @include('partials.faq-content')
         </div>
     </div>
 </x-guest-layout>

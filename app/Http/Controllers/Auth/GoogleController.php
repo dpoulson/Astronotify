@@ -25,6 +25,7 @@ class GoogleController extends Controller
             ], [
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
+                'email_verified_at' => now(),
                 'google_token' => $googleUser->token,
                 'google_refresh_token' => $googleUser->refreshToken,
             ]);

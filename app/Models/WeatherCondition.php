@@ -27,7 +27,9 @@ class WeatherCondition extends Model
         'location_id',
         'date',
         'forecast_data',
+        'hourly_clouds',
         'is_optimal',
+        'notified_at',
     ];
 
     protected function casts(): array
@@ -35,7 +37,9 @@ class WeatherCondition extends Model
         return [
             'date' => 'date',
             'forecast_data' => 'json',
+            'hourly_clouds' => 'array',
             'is_optimal' => 'boolean',
+            'notified_at' => 'datetime',
         ];
     }
 

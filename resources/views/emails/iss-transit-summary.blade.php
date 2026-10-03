@@ -13,6 +13,9 @@ Good news! We have calculated the International Space Station (ISS) orbital pass
   - **Type:** {{ $transit['is_exact_transit'] ? 'Exact Transit (crosses face)' : 'Close Conjunction' }}
   - **Separation:** {{ $transit['separation_degrees'] }}°
   - **Position:** Altitude {{ $transit['altitude_degrees'] }}°, Azimuth {{ $transit['azimuth_degrees'] }}°
+@if(isset($transit['cloud_cover_percent']) && $transit['cloud_cover_percent'] !== null)
+  - **Forecast Cloud Cover:** {{ $transit['cloud_cover_percent'] }}%
+@endif
 @endforeach
 
 @endforeach

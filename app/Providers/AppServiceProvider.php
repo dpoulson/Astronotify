@@ -67,7 +67,8 @@ class AppServiceProvider extends ServiceProvider
             try {
                 $command = $event->command;
                 
-                if (!Schema::hasTable('command_logs')) {
+                $exclude = ['serve', 'migrate', 'migrate:status', 'vendor:publish', 'package:discover', 'livewire:discover', 'queue:work', 'queue:listen'];
+                if (in_array($command, $exclude) || is_null($command) || !Schema::hasTable('command_logs')) {
                     return;
                 }
 

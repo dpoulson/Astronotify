@@ -48,8 +48,11 @@ class ISSTransitCalculator
         $forecastDays = (int) (Setting::where('key', 'forecast_days')->value('value') ?? 7);
         $startJD = \Predict_Time::get_current_daynum();
 
-        // Clear existing transit records for this location
-        ISSTransit::where('location_id', $location->id)->delete();
+        // Load existing upcoming transit records to preserve notification state
+        $existingTransits = ISSTransit::where('location_id', $location->id)
+            ->where('time', '>=', now()->subHours(2))
+            ->get();
+        $matchedTransitIds = [];
 
         $qth = new \Predict_QTH();
         $qth->lat = (float) $location->latitude;
@@ -225,25 +228,29 @@ class ISSTransitCalculator
                 $date = new \DateTime("@" . round($unix));
                 $date->setTimezone(new \DateTimeZone('UTC'));
 
+                $transitRecord = $this->upsertTransit(
+                    $location,
+                    'sun',
+                    $date,
+                    $minSunSep,
+                    $minSunAlt,
+                    $minSunAz,
+                    $sunPathPoints,
+                    $existingTransits,
+                    $matchedTransitIds
+                );
+
                 $createdTransits[] = [
+                    "id" => $transitRecord->id,
                     "type" => "sun",
                     "time" => $date->format('Y-m-d\TH:i:s\Z'),
                     "separation_degrees" => round($minSunSep, 4),
                     "altitude_degrees" => round($minSunAlt, 2),
                     "azimuth_degrees" => round($minSunAz, 2),
-                    "is_exact_transit" => ($minSunSep <= 0.26)
+                    "is_exact_transit" => ($minSunSep <= 0.26),
+                    "cloud_cover_percent" => $transitRecord->cloud_cover_percent,
+                    "notified_at" => $transitRecord->notified_at,
                 ];
-
-                ISSTransit::create([
-                    'location_id' => $location->id,
-                    'type' => 'sun',
-                    'time' => $date,
-                    'separation_degrees' => $minSunSep,
-                    'altitude_degrees' => $minSunAlt,
-                    'azimuth_degrees' => $minSunAz,
-                    'is_exact_transit' => ($minSunSep <= 0.26),
-                    'path_points' => $sunPathPoints ?: null,
-                ]);
             }
 
             if ($location->notify_iss_moon_transit && $minMoonSep <= $limitDeg && $minMoonAlt > 0) {
@@ -251,29 +258,94 @@ class ISSTransitCalculator
                 $date = new \DateTime("@" . round($unix));
                 $date->setTimezone(new \DateTimeZone('UTC'));
 
+                $transitRecord = $this->upsertTransit(
+                    $location,
+                    'moon',
+                    $date,
+                    $minMoonSep,
+                    $minMoonAlt,
+                    $minMoonAz,
+                    $moonPathPoints,
+                    $existingTransits,
+                    $matchedTransitIds
+                );
+
                 $createdTransits[] = [
+                    "id" => $transitRecord->id,
                     "type" => "moon",
                     "time" => $date->format('Y-m-d\TH:i:s\Z'),
                     "separation_degrees" => round($minMoonSep, 4),
                     "altitude_degrees" => round($minMoonAlt, 2),
                     "azimuth_degrees" => round($minMoonAz, 2),
-                    "is_exact_transit" => ($minMoonSep <= 0.26)
+                    "is_exact_transit" => ($minMoonSep <= 0.26),
+                    "cloud_cover_percent" => $transitRecord->cloud_cover_percent,
+                    "notified_at" => $transitRecord->notified_at,
                 ];
-
-                ISSTransit::create([
-                    'location_id' => $location->id,
-                    'type' => 'moon',
-                    'time' => $date,
-                    'separation_degrees' => $minMoonSep,
-                    'altitude_degrees' => $minMoonAlt,
-                    'azimuth_degrees' => $minMoonAz,
-                    'is_exact_transit' => ($minMoonSep <= 0.26),
-                    'path_points' => $moonPathPoints ?: null,
-                ]);
             }
         }
 
+        // Remove any future transit records that were not matched (pass prediction changed or disappeared)
+        $unmatchedIds = $existingTransits->pluck('id')->diff($matchedTransitIds);
+        if ($unmatchedIds->isNotEmpty()) {
+            ISSTransit::whereIn('id', $unmatchedIds)->delete();
+        }
+
+        // Clean up old past records
+        ISSTransit::where('location_id', $location->id)->where('time', '<', now()->subHours(2))->delete();
+
         return $createdTransits;
+    }
+
+    private function upsertTransit(
+        Location $location,
+        string $type,
+        \DateTime $date,
+        float $sep,
+        float $alt,
+        float $az,
+        ?array $pathPoints,
+        $existingTransits,
+        array &$matchedTransitIds
+    ): ISSTransit {
+        $carbonDate = \Carbon\Carbon::instance($date);
+
+        // Find existing record of same type within +/- 15 minutes that hasn't been matched yet
+        $existing = $existingTransits->first(function ($t) use ($type, $carbonDate, $matchedTransitIds) {
+            return $t->type === $type
+                && !in_array($t->id, $matchedTransitIds)
+                && abs($carbonDate->diffInMinutes($t->time)) <= 15;
+        });
+
+        $cloudCover = $location->getCloudCoverAt($date) ?? ($existing?->cloud_cover_percent);
+
+        if ($existing) {
+            $existing->update([
+                'time' => $date,
+                'separation_degrees' => $sep,
+                'altitude_degrees' => $alt,
+                'azimuth_degrees' => $az,
+                'is_exact_transit' => ($sep <= 0.26),
+                'path_points' => $pathPoints ?: null,
+                'cloud_cover_percent' => $cloudCover,
+            ]);
+            $matchedTransitIds[] = $existing->id;
+            return $existing;
+        }
+
+        $newTransit = ISSTransit::create([
+            'location_id' => $location->id,
+            'type' => $type,
+            'time' => $date,
+            'separation_degrees' => $sep,
+            'altitude_degrees' => $alt,
+            'azimuth_degrees' => $az,
+            'is_exact_transit' => ($sep <= 0.26),
+            'path_points' => $pathPoints ?: null,
+            'cloud_cover_percent' => $cloudCover,
+            'notified_at' => null,
+        ]);
+        $matchedTransitIds[] = $newTransit->id;
+        return $newTransit;
     }
 
     private static function calculateSeparation($el1, $az1, $el2, $az2)

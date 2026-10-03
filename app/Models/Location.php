@@ -108,4 +108,46 @@ class Location extends Model
             ]);
         }
     }
+
+    public function getCloudCoverAt(\DateTimeInterface $time): ?int
+    {
+        $carbon = \Carbon\Carbon::instance($time);
+        $dateStr = $carbon->toDateString();
+
+        $condition = $this->conditions()->whereDate('date', $dateStr)->first();
+        if (!$condition) {
+            $condition = $this->conditions()
+                ->whereBetween('date', [$carbon->copy()->subDay()->toDateString(), $carbon->copy()->addDay()->toDateString()])
+                ->first();
+        }
+
+        if (!$condition || empty($condition->hourly_clouds)) {
+            return null;
+        }
+
+        $clouds = $condition->hourly_clouds;
+        if (!is_array($clouds)) {
+            return null;
+        }
+
+        // Try exact UTC hour key "YYYY-MM-DD HH:00"
+        $utcKey = $carbon->copy()->utc()->format('Y-m-d H:00');
+        if (isset($clouds[$utcKey])) {
+            return (int) $clouds[$utcKey];
+        }
+
+        // Try rounded UTC hour key
+        $roundedUtcKey = $carbon->copy()->utc()->roundHour()->format('Y-m-d H:00');
+        if (isset($clouds[$roundedUtcKey])) {
+            return (int) $clouds[$roundedUtcKey];
+        }
+
+        // Try local hour format "HH:00"
+        $hourKey = $carbon->format('H:00');
+        if (isset($clouds[$hourKey])) {
+            return (int) $clouds[$hourKey];
+        }
+
+        return null;
+    }
 }

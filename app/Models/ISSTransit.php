@@ -17,6 +17,8 @@ class ISSTransit extends Model
         'azimuth_degrees',
         'is_exact_transit',
         'path_points',
+        'notified_at',
+        'cloud_cover_percent',
     ];
 
     protected function casts(): array
@@ -28,6 +30,8 @@ class ISSTransit extends Model
             'azimuth_degrees' => 'decimal:2',
             'is_exact_transit' => 'boolean',
             'path_points' => 'array',
+            'notified_at' => 'datetime',
+            'cloud_cover_percent' => 'integer',
         ];
     }
 

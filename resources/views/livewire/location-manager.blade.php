@@ -231,6 +231,12 @@
                                 </div>
                                 @endif
 
+                                @if($transit->cloud_cover_percent !== null && $transit->cloud_cover_percent >= 90)
+                                <div class="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600 flex items-center gap-1">
+                                    <span>⚠️ Cloudy ({{ $transit->cloud_cover_percent }}%)</span>
+                                </div>
+                                @endif
+
                                 {{-- Enlarge hint --}}
                                 <div class="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     <div class="bg-slate-900/80 backdrop-blur-sm text-slate-300 text-[9px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
@@ -272,6 +278,24 @@
                                         <span class="font-bold text-slate-300">{{ $transit->altitude_degrees }}° / {{ $transit->azimuth_degrees }}°</span>
                                     </div>
                                 </div>
+                                @if($transit->cloud_cover_percent !== null)
+                                    <div class="pt-1.5 border-t border-slate-800/80">
+                                        @if($transit->cloud_cover_percent >= 90)
+                                            <div class="px-2 py-1 rounded bg-amber-950/70 border border-amber-600/40 text-amber-300 text-[9px] flex items-center gap-1 font-semibold">
+                                                <svg class="w-3 h-3 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span>Poor viewing: {{ $transit->cloud_cover_percent }}% cloud</span>
+                                            </div>
+                                        @elseif($transit->cloud_cover_percent < 30)
+                                            <div class="px-2 py-1 rounded bg-emerald-950/50 border border-emerald-600/30 text-emerald-300 text-[9px] flex items-center gap-1 font-medium">
+                                                <span>🌤️ Clear skies: {{ $transit->cloud_cover_percent }}% cloud</span>
+                                            </div>
+                                        @else
+                                            <div class="px-2 py-1 rounded bg-slate-800/60 border border-slate-700/50 text-slate-300 text-[9px] flex items-center gap-1 font-medium">
+                                                <span>☁️ {{ $transit->cloud_cover_percent }}% cloud cover</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -913,6 +937,29 @@
                             <span>{{ $moon['name'] }}</span>
                             <span class="text-xs text-slate-500">({{ $moon['illumination'] }}% illuminated)</span>
                         </div>
+                    </div>
+                    @endif
+
+                    @if($transit->cloud_cover_percent !== null)
+                    <div class="pt-1">
+                        <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Forecast Cloud Cover</div>
+                        @if($transit->cloud_cover_percent >= 90)
+                        <div class="px-3 py-2 rounded-xl bg-amber-950/70 border border-amber-600/40 text-amber-300 text-xs font-semibold flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <div>
+                                <div class="font-bold">⚠️ Cloud Warning: {{ $transit->cloud_cover_percent }}% Overcast</div>
+                                <div class="text-[10px] text-amber-300/80 font-normal">Overcast skies predicted. Observation is unlikely to be possible.</div>
+                            </div>
+                        </div>
+                        @elseif($transit->cloud_cover_percent < 30)
+                        <div class="px-3 py-2 rounded-xl bg-emerald-950/50 border border-emerald-600/30 text-emerald-300 text-xs font-medium flex items-center gap-2">
+                            <span>🌤️ Favorable Viewing: {{ $transit->cloud_cover_percent }}% Cloud Cover</span>
+                        </div>
+                        @else
+                        <div class="px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700/50 text-slate-300 text-xs font-medium flex items-center gap-2">
+                            <span>☁️ Partly Cloudy: {{ $transit->cloud_cover_percent }}% Cloud Cover</span>
+                        </div>
+                        @endif
                     </div>
                     @endif
 

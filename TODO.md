@@ -5,6 +5,7 @@
 - [ ] L **Notification quiet hours** — let users set a "do not disturb" window so alerts don't arrive at 3am
 - [x] M **Test notification button** — send a test email from the location card to confirm delivery is working
 - [x] H **Unsubscribe / re-subscribe link** in email footers so users can opt out without logging in
+- [x] H **Notification deduplication & overcast suppression** — track `notified_at` on transits and weather conditions; suppress transit alerts when overcast (≥90% cloud cover) with dashboard warnings
 
 ## 🛠️ Admin
 - [ ] L **Fix stats / metrics** — verify system_metrics and daily_metrics are incrementing correctly; display graphs on admin dashboard
@@ -12,11 +13,12 @@
 - [ ] L **Per-user location count** and last-active date in user table
 - [x] H **Manual trigger buttons** in admin UI for `weather:fetch` and `weather:iss-transits` (instead of SSH + artisan)
 - [x] M **Failed job queue** — surface any queued email failures in the admin dashboard with retry button
+- [x] H **Anti spam accounts** — honeypot field, minimum form submission timing check, and email verification
 
 ## 📄 Pages
 - [x] M **Update About page** — reflect current feature set (ISS transits, elevation support, solar/lunar path diagrams, etc.)
-- [ ] M **Add a Help / FAQ page** — explain what separation degrees means, what counts as a transit vs conjunction, how to set thresholds
-- [ ] M **Landing / marketing page** — improve the welcome page for new visitors
+- [x] M **Add a Help / FAQ page** — explain what separation degrees means, what counts as a transit vs conjunction, how to set thresholds, and solar safety
+- [x] M **Landing / marketing page** — modern redesign of welcome page with transit previews, feature pillars, and navigation
 
 ## 🗺️ Dashboard UX
 - [ ] L **Fix jerk on Add Location expand/collapse** — the sidebar width transition causes a layout reflow when scrolled down; investigate whether `position: sticky` or `overflow: hidden` on the parent resolves it without breaking the layout

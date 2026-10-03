@@ -96,6 +96,23 @@ class FetchWeatherData extends Command
             $data = $response->json();
             $tz   = $data['timezone'] ?? 'UTC';
             $this->line("  {$coords} (tz={$tz}) — processing " . $group->pluck('name')->join(', ') . '...');
+
+            // Pre-process 24-hour hourly cloud cover for transits and conditions
+            $hourlyCloudsByDate = [];
+            if (isset($data['hourly']['time'], $data['hourly']['cloud_cover'])) {
+                foreach ($data['hourly']['time'] as $idx => $timeStr) {
+                    $localTime = Carbon::parse($timeStr, $tz);
+                    $dateKey = $localTime->toDateString();
+                    $cloud = (int) ($data['hourly']['cloud_cover'][$idx] ?? 100);
+
+                    $localHour = $localTime->format('H:00');
+                    $utcHour = $localTime->copy()->utc()->format('Y-m-d H:00');
+
+                    $hourlyCloudsByDate[$dateKey][$localHour] = $cloud;
+                    $hourlyCloudsByDate[$dateKey][$utcHour] = $cloud;
+                    $hourlyCloudsByDate[$localTime->copy()->utc()->toDateString()][$utcHour] = $cloud;
+                }
+            }
             
             // Loop through the configured nights dynamically (capped at 14 to match API window)
             $nightCount = min($forecast_days, 14);
@@ -148,20 +165,22 @@ class FetchWeatherData extends Command
                     }
 
                     $condition = WeatherCondition::where('location_id', $location->id)->whereDate('date', $dateStr)->first();
-                    $alreadyWasOptimal = $condition ? $condition->is_optimal : false;
+                    $alreadyNotified = $condition && !is_null($condition->notified_at);
 
                     // Save to DB to cut down on API calls
                     try {
                         if ($condition) {
                             $condition->update([
                                 'forecast_data' => $nightHours,
+                                'hourly_clouds' => $hourlyCloudsByDate[$dateStr] ?? null,
                                 'is_optimal'    => $isOptimal,
                             ]);
                         } else {
-                            WeatherCondition::create([
+                            $condition = WeatherCondition::create([
                                 'location_id'   => $location->id,
                                 'date'          => Carbon::parse($dateStr),
                                 'forecast_data' => $nightHours,
+                                'hourly_clouds' => $hourlyCloudsByDate[$dateStr] ?? null,
                                 'is_optimal'    => $isOptimal,
                             ]);
                         }
@@ -170,15 +189,29 @@ class FetchWeatherData extends Command
                         \Illuminate\Support\Facades\Log::error("weather:fetch DB error for location {$location->id} on {$dateStr}: " . $e->getMessage());
                     }
 
-                    // Collect alert data if newly optimal and email alerts are enabled for this location
-                    if ($isOptimal && !$alreadyWasOptimal && $location->notify_stargazing_alerts) {
+                    // Collect alert data if optimal, not yet notified for this date, and email alerts enabled
+                    if ($isOptimal && !$alreadyNotified && $location->notify_stargazing_alerts) {
                         $userAlerts[$location->user_id]['user'] = $location->user;
+                        $userAlerts[$location->user_id]['condition_ids'][] = $condition->id;
                         $userAlerts[$location->user_id]['alerts'][] = [
                             'location_name' => $location->name,
                             'date' => $dateStr,
                             'night_length' => $nightLength,
                             'max_clear' => $maxClear,
                         ];
+                    }
+                }
+            }
+
+            // Refresh cloud cover predictions on upcoming ISS transits for this location
+            foreach ($group as $location) {
+                $upcomingTransits = \App\Models\ISSTransit::where('location_id', $location->id)
+                    ->where('time', '>=', now())
+                    ->get();
+                foreach ($upcomingTransits as $transit) {
+                    $cloud = $location->getCloudCoverAt($transit->time);
+                    if ($cloud !== null && $transit->cloud_cover_percent !== $cloud) {
+                        $transit->update(['cloud_cover_percent' => $cloud]);
                     }
                 }
             }
@@ -190,9 +223,11 @@ class FetchWeatherData extends Command
             foreach ($userAlerts as $userId => $data) {
                 $user = $data['user'];
                 $alerts = $data['alerts'];
+                $conditionIds = $data['condition_ids'] ?? [];
                 
                 try {
                     Mail::to($user->email)->queue(new StargazingSummary($alerts, $user));
+                    WeatherCondition::whereIn('id', $conditionIds)->update(['notified_at' => now()]);
                     $this->info("Summary alert queued for {$user->name} (" . count($alerts) . " nights)");
                 } catch (\Exception $e) {
                     Log::error("Failed to queue weather summary email for User ID {$userId}: " . $e->getMessage());

@@ -9,6 +9,13 @@
         <form method="POST" action="{{ route('register') }}">
             @csrf
 
+            {{-- Bot protection honeypot and timestamp --}}
+            <div style="display:none !important;" aria-hidden="true">
+                <label for="website_url">Leave blank</label>
+                <input type="text" name="website_url" id="website_url" value="" tabindex="-1" autocomplete="off" />
+            </div>
+            <input type="hidden" name="form_time" value="{{ encrypt(microtime(true)) }}" />
+
             <div>
                 <x-label for="name" value="{{ __('Name') }}" />
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
