@@ -33,5 +33,6 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "splashScreenFadeOutDuration": 300
+  "splashScreenFadeOutDuration": 300,
+  "appVersion": "1.0.0"
 }
