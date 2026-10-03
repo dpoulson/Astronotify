@@ -151,6 +151,17 @@ class LocationManager extends Component
             $calculator = new \App\Services\ISSTransitCalculator();
             $calculator->calculateForLocation($location);
 
+            if (!app()->runningUnitTests()) {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
+                        '--location' => $location->id,
+                        '--no-alerts' => true,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to immediately fetch weather for location {$location->id}: {$e->getMessage()}");
+                }
+            }
+
             session()->flash('message', 'Location added successfully.');
         }
 
@@ -245,6 +256,22 @@ class LocationManager extends Component
                 session()->flash('message', 'Test notification sent successfully to ' . Auth::user()->email);
             } catch (\Exception $e) {
                 session()->flash('error', 'Failed to send test email: ' . $e->getMessage());
+            }
+        }
+    }
+
+    public function refreshForecast($id)
+    {
+        $location = Auth::user()->locations()->find($id);
+        if ($location) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
+                    '--location' => $location->id,
+                    '--no-alerts' => true,
+                ]);
+                session()->flash('message', "Forecast refreshed for {$location->name}.");
+            } catch (\Throwable $e) {
+                session()->flash('error', "Could not refresh forecast: {$e->getMessage()}");
             }
         }
     }

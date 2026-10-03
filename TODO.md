@@ -40,6 +40,7 @@
 - [x] M **Moon phase display** — show moon phase icon on each forecast day card (affects naked-eye astronomy)
 - [x] M **Light pollution overlay** — link to or embed a Bortle scale indicator for each location
 - [x] H **Recheck on location change** — If a user changes their viewing requirements, the forecast doesn't update to check for optimal days
+- [x] H **Automatic forecast hydration on spot creation** — immediately compute ISS transits and fetch weather on spot save/track; replaced technical "Run weather:fetch" prompt with friendly sync state and on-demand "Sync Now" button
 
 ## 🔧 Technical / Housekeeping
 - [x] H **Remove test login route** — ensure `/login-as-test-user` is not present on production (currently removed but worth a deploy checklist item)

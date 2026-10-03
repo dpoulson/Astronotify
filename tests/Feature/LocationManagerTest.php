@@ -293,4 +293,59 @@ class LocationManagerTest extends TestCase
             ->assertSee('shareTransit', false)
             ->assertSee('WhatsApp', false);
     }
+
+    public function test_forecast_syncing_state_shows_friendly_copy_and_sync_button(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Pending Sync Spot',
+            'latitude' => 52.0,
+            'longitude' => -1.0,
+            'elevation' => 50,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->assertSee('Forecast data is syncing')
+            ->assertSee('Sync Now')
+            ->assertDontSee('weather:fetch')
+            ->assertDontSee('cron');
+    }
+
+    public function test_user_can_refresh_forecast(): void
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            'api.open-meteo.com/*' => \Illuminate\Support\Facades\Http::response([
+                'timezone' => 'UTC',
+                'daily' => [
+                    'sunset' => [now()->format('Y-m-d\T19:00')],
+                    'sunrise' => [now()->format('Y-m-d\T06:00'), now()->addDay()->format('Y-m-d\T06:00')],
+                ],
+                'hourly' => [
+                    'time' => [now()->format('Y-m-d\T22:00')],
+                    'cloud_cover' => [10],
+                    'wind_speed_10m' => [5],
+                ],
+            ], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Refresh Test Spot',
+            'latitude' => 52.0,
+            'longitude' => -1.0,
+            'elevation' => 50,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->call('refreshForecast', $location->id)
+            ->assertSee('Forecast refreshed for Refresh Test Spot.');
+    }
 }

@@ -59,7 +59,7 @@ class PublicSpotView extends Component
             return redirect()->route('dashboard');
         }
 
-        Location::create([
+        $location = Location::create([
             'user_id' => Auth::id(),
             'name' => $this->spot->name,
             'latitude' => $this->spot->latitude,
@@ -76,8 +76,26 @@ class PublicSpotView extends Component
             'notify_iss_moon_transit' => true,
         ]);
 
+        try {
+            $calculator = new \App\Services\ISSTransitCalculator();
+            $calculator->calculateForLocation($location);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to calculate ISS transits for spot {$location->id}: {$e->getMessage()}");
+        }
+
+        if (!app()->runningUnitTests()) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
+                    '--location' => $location->id,
+                    '--no-alerts' => true,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Failed to fetch initial weather for spot {$location->id}: {$e->getMessage()}");
+            }
+        }
+
         $this->isSavedByUser = true;
-        session()->flash('message', "Added {$this->spot->name} to your locations! Transits and forecasts will now be monitored automatically.");
+        session()->flash('message', "Added {$this->spot->name} to your locations! Transits and forecasts have been synchronized.");
         return redirect()->route('dashboard');
     }
 

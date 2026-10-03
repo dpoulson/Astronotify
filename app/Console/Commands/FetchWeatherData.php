@@ -13,13 +13,27 @@ use App\Mail\StargazingAlert;
 use App\Mail\StargazingSummary;
 use Carbon\Carbon;
 
-#[Signature('weather:fetch')]
+#[Signature('weather:fetch {--location= : Specific location ID to fetch for} {--no-alerts : Do not send alert emails}')]
 #[Description('Fetches weather forecasts for registered stargazing locations.')]
 class FetchWeatherData extends Command
 {
     public function handle()
     {
-        $locations = Location::query()->with('user')->where('is_active', true)->get();
+        $locationId = $this->option('location');
+        $query = Location::query()->with('user');
+
+        if ($locationId) {
+            $query->where('id', $locationId);
+        } else {
+            $query->where('is_active', true);
+        }
+
+        $locations = $query->get();
+        if ($locations->isEmpty()) {
+            $this->info("No locations found to fetch weather for.");
+            return 0;
+        }
+
         // Load dynamically from settings layout
         $grouping_decimals = (int) (\App\Models\Setting::where('key', 'grouping_decimal_places')->value('value') ?? 1);
         $forecast_days = (int) (\App\Models\Setting::where('key', 'forecast_days')->value('value') ?? 7);
@@ -218,7 +232,8 @@ class FetchWeatherData extends Command
         }
 
         // Send emails
-        if (count($userAlerts) > 0) {
+        $noAlerts = (bool) $this->option('no-alerts');
+        if (!$noAlerts && count($userAlerts) > 0) {
             $this->info("Queuing aggregated summary emails for " . count($userAlerts) . " users...");
             foreach ($userAlerts as $userId => $data) {
                 $user = $data['user'];
@@ -236,8 +251,10 @@ class FetchWeatherData extends Command
             }
         }
 
-        // Prune historical weather records older than today to save DB space
-        WeatherCondition::where('date', '<', today()->toDateString())->delete();
+        // Prune historical weather records older than today to save DB space (full sync only)
+        if (!$locationId) {
+            WeatherCondition::where('date', '<', today()->toDateString())->delete();
+        }
 
         $this->info("Weather data fetch and batching complete.");
         return 0;

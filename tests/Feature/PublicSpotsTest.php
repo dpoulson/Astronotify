@@ -109,4 +109,37 @@ class PublicSpotsTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    public function test_user_can_track_spot_in_account(): void
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            'celestrak.org/*' => \Illuminate\Support\Facades\Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200),
+            'api.open-meteo.com/*' => \Illuminate\Support\Facades\Http::response(['hourly' => ['time' => []], 'daily' => ['time' => []]], 200),
+        ]);
+
+        $user = User::factory()->create();
+        $spot = StargazingSpot::create([
+            'name' => 'Brecon Beacons',
+            'slug' => 'brecon-beacons',
+            'country' => 'United Kingdom',
+            'latitude' => 51.88,
+            'longitude' => -3.43,
+            'elevation' => 290,
+            'bortle_class' => 3,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(\App\Livewire\PublicSpotView::class, ['slug' => $spot->slug])
+            ->call('trackSpotInAccount')
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('locations', [
+            'user_id' => $user->id,
+            'name' => 'Brecon Beacons',
+            'latitude' => 51.88,
+            'longitude' => -3.43,
+        ]);
+    }
 }
