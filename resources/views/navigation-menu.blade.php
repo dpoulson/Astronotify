@@ -33,21 +33,54 @@
                     </x-nav-link>
 
                     @if(Auth::check() && Auth::user()->is_admin)
-                        <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Admin') }}
-                        </x-nav-link>
-                        <x-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
-                            {{ __('Manage Spots') }}
-                        </x-nav-link>
-                        <x-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
-                            {{ __('Settings') }}
-                        </x-nav-link>
-                        <x-nav-link href="{{ route('admin.queue') }}" :active="request()->routeIs('admin.queue')">
-                            {{ __('Email Queue') }}
-                        </x-nav-link>
-                        <x-nav-link href="{{ route('admin.crons') }}" :active="request()->routeIs('admin.crons')">
-                            {{ __('Cron Monitor') }}
-                        </x-nav-link>
+                        <div class="inline-flex items-center">
+                            <x-dropdown align="left" width="60">
+                                <x-slot name="trigger">
+                                    <button type="button" class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('admin.*') ? 'border-indigo-400 dark:border-indigo-600 text-gray-900 dark:text-gray-100' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700' }}">
+                                        <span>{{ __('Admin') }}</span>
+                                        <svg class="ms-1.5 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+
+                                <x-slot name="content">
+                                    <div class="block px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                        {{ __('Administration') }}
+                                    </div>
+
+                                    <x-dropdown-link href="{{ route('admin.dashboard') }}">
+                                        {{ __('Dashboard Overview') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link href="{{ route('admin.spots') }}">
+                                        {{ __('Manage Spots') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link href="{{ route('admin.users') }}">
+                                        {{ __('Users') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link href="{{ route('admin.locations') }}">
+                                        {{ __('User Locations') }}
+                                    </x-dropdown-link>
+
+                                    <div class="border-t border-gray-100 dark:border-gray-600"></div>
+
+                                    <x-dropdown-link href="{{ route('admin.settings') }}">
+                                        {{ __('System Settings') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link href="{{ route('admin.queue') }}">
+                                        {{ __('Email Queue') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link href="{{ route('admin.crons') }}">
+                                        {{ __('Cron Monitor') }}
+                                    </x-dropdown-link>
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -194,21 +227,37 @@
             </x-responsive-nav-link>
 
             @if(Auth::check() && Auth::user()->is_admin)
-                <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Admin') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
-                    {{ __('Manage Spots') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
-                    {{ __('Settings') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.queue') }}" :active="request()->routeIs('admin.queue')">
-                    {{ __('Email Queue') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.crons') }}" :active="request()->routeIs('admin.crons')">
-                    {{ __('Cron Monitor') }}
-                </x-responsive-nav-link>
+                <div class="pt-2 pb-1 border-t border-gray-200 dark:border-gray-700" x-data="{ adminOpen: {{ request()->routeIs('admin.*') ? 'true' : 'false' }} }">
+                    <button type="button" @click="adminOpen = !adminOpen" class="w-full flex items-center justify-between ps-3 pe-4 py-2 border-l-4 {{ request()->routeIs('admin.*') ? 'border-indigo-400 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/20' : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200' }} text-start text-base font-medium transition">
+                        <span>{{ __('Admin') }}</span>
+                        <svg class="size-4 transform transition-transform" :class="adminOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="adminOpen" class="ps-4 space-y-1 mt-1">
+                        <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Dashboard Overview') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
+                            {{ __('Manage Spots') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.users') }}" :active="request()->routeIs('admin.users')">
+                            {{ __('Users') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.locations') }}" :active="request()->routeIs('admin.locations')">
+                            {{ __('User Locations') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
+                            {{ __('System Settings') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.queue') }}" :active="request()->routeIs('admin.queue')">
+                            {{ __('Email Queue') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.crons') }}" :active="request()->routeIs('admin.crons')">
+                            {{ __('Cron Monitor') }}
+                        </x-responsive-nav-link>
+                    </div>
+                </div>
             @endif
         </div>
 
