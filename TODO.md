@@ -46,3 +46,12 @@
 - [ ] L **Queue worker** — ensure `php artisan queue:work` (or `queue:listen`) is running as a persistent process on the shared host, or switch to `QUEUE_CONNECTION=sync` if a worker can't be kept alive
 - [ ] L **`.env` secrets audit** — double-check `APP_KEY`, mail credentials, and `APP_DEBUG=false` before going live
 - [x] M **Error page branding** — style the 404 / 500 pages to match the dark theme
+
+## 🚀 Marketing & Growth
+- [x] H **Public Stargazing Spots Directory (`/spots`)** — 100 curated dark-sky locations worldwide (concentrated on UK, EU, USA, and Canada) with Bortle scale ratings, 4-night cloud forecasts, and SGP4 modeled ISS transit predictions
+- [x] H **Admin Stargazing Spots Manager (`/admin/spots`)** — full CRUD admin dashboard for adding, editing, filtering, and deactivating curated dark-sky locations on request
+- [x] H **Public Transit Pass Permalinks (`/transit/{public_token}`)** — dedicated shareable pass pages with celestial orbital chord diagrams, telemetry, 1-click Google Calendar / iCal exports, and OpenGraph social preview cards
+- [ ] M **Embeddable Club Widget (`<script>` / `<iframe>`)** — lightweight embeddable widget for local astronomical societies displaying tonight's viewing index and next ISS transit with backlink to Astronotify
+- [ ] M **Astronomy Society Discord / Matrix / Telegram Webhooks** — automated bot dispatcher to broadcast daily viewing conditions and transit alerts directly into club chats
+- [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
+

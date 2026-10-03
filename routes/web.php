@@ -41,6 +41,11 @@ Route::get('/privacy-policy', function () {
     return redirect()->route('privacy');
 })->name('policy.show');
 
+// Public Marketing & SEO Routes
+Route::get('/spots', \App\Livewire\PublicSpotsList::class)->name('spots.index');
+Route::get('/spots/{slug}', \App\Livewire\PublicSpotView::class)->name('spots.show');
+Route::get('/transit/{token}', \App\Livewire\PublicTransitView::class)->name('transit.show');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -61,6 +66,10 @@ Route::middleware([
     Route::get('/admin/locations', \App\Livewire\AdminLocationsList::class)
         ->middleware('can:admin')
         ->name('admin.locations');
+
+    Route::get('/admin/spots', \App\Livewire\AdminStargazingSpots::class)
+        ->middleware('can:admin')
+        ->name('admin.spots');
 
     Route::get('/admin/users/{user}', \App\Livewire\AdminUserView::class)
         ->middleware('can:admin')

@@ -9,6 +9,7 @@ class ISSTransit extends Model
     protected $table = 'iss_transits';
 
     protected $fillable = [
+        'public_token',
         'location_id',
         'type',
         'time',
@@ -20,6 +21,15 @@ class ISSTransit extends Model
         'notified_at',
         'cloud_cover_percent',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (ISSTransit $transit) {
+            if (empty($transit->public_token)) {
+                $transit->public_token = \Illuminate\Support\Str::random(16);
+            }
+        });
+    }
 
     protected function casts(): array
     {

@@ -369,14 +369,15 @@
                                     $tTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
                                     $tEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
                                     $tTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
+                                    $tUrl = $transit->public_token ? route('transit.show', $transit->public_token) : 'https://astronotify.org';
                                     $gTitle = urlencode("ISS {$tTypeStr} Transit — {$transit->location->name}");
-                                    $gDesc = urlencode("ISS {$tTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: https://astronotify.org");
+                                    $gDesc = urlencode("ISS {$tTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: {$tUrl}");
                                     $gLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
                                     $gCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$gTitle}&dates={$tTimeIso}/{$tEndIso}&details={$gDesc}&location={$gLoc}";
                                     $sSummary = "ISS {$tTypeStr} Transit — {$transit->location->name}";
                                     $sDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
                                     $sCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
-                                    $sText = "🛰️ ISS {$tTypeStr} Transit over {$transit->location->name}\n📅 {$sDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$sCloudStr}\nModeled via Astronotify: https://astronotify.org";
+                                    $sText = "🛰️ ISS {$tTypeStr} Transit over {$transit->location->name}\n📅 {$sDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$sCloudStr}\nModeled via Astronotify: {$tUrl}";
                                 @endphp
                                 <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
                                     <button 
@@ -1171,14 +1172,15 @@
                         $mTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
                         $mEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
                         $mTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
+                        $mtUrl = $transit->public_token ? route('transit.show', $transit->public_token) : 'https://astronotify.org';
                         $mgTitle = urlencode("ISS {$mTypeStr} Transit — {$transit->location->name}");
-                        $mgDesc = urlencode("ISS {$mTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: https://astronotify.org");
+                        $mgDesc = urlencode("ISS {$mTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: {$mtUrl}");
                         $mgLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
                         $mgCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$mgTitle}&dates={$mTimeIso}/{$mEndIso}&details={$mgDesc}&location={$mgLoc}";
                         $msSummary = "ISS {$mTypeStr} Transit — {$transit->location->name}";
                         $msDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
                         $msCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
-                        $msText = "🛰️ ISS {$mTypeStr} Transit over {$transit->location->name}\n📅 {$msDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$msCloudStr}\nModeled via Astronotify: https://astronotify.org";
+                        $msText = "🛰️ ISS {$mTypeStr} Transit over {$transit->location->name}\n📅 {$msDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$msCloudStr}\nModeled via Astronotify: {$mtUrl}";
                         $msWhatsApp = "https://api.whatsapp.com/send?text=" . urlencode($msText);
                     @endphp
                     <div class="pt-3 border-t border-slate-800 space-y-2">
@@ -1199,6 +1201,11 @@
                             <a href="{{ $msWhatsApp }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-950/70 hover:bg-green-900 border border-green-500/40 text-green-200 text-xs font-semibold transition-all">
                                 <span>💬 WhatsApp</span>
                             </a>
+                            @if($transit->public_token)
+                            <a href="{{ route('transit.show', $transit->public_token) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-all">
+                                <span>Public Pass Link ↗</span>
+                            </a>
+                            @endif
                         </div>
                     </div>
                 </div>

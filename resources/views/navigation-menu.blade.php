@@ -16,6 +16,10 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
+                    <x-nav-link href="{{ route('spots.index') }}" :active="request()->routeIs('spots.*')">
+                        {{ __('Spots') }}
+                    </x-nav-link>
+
                     <x-nav-link href="{{ route('about') }}" :active="request()->routeIs('about')">
                         {{ __('About') }}
                     </x-nav-link>
@@ -31,6 +35,9 @@
                     @if(Auth::check() && Auth::user()->is_admin)
                         <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Admin') }}
+                        </x-nav-link>
+                        <x-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
+                            {{ __('Manage Spots') }}
                         </x-nav-link>
                         <x-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
                             {{ __('Settings') }}
@@ -170,6 +177,10 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
+            <x-responsive-nav-link href="{{ route('spots.index') }}" :active="request()->routeIs('spots.*')">
+                {{ __('Spots') }}
+            </x-responsive-nav-link>
+
             <x-responsive-nav-link href="{{ route('about') }}" :active="request()->routeIs('about')">
                 {{ __('About') }}
             </x-responsive-nav-link>
@@ -185,6 +196,9 @@
             @if(Auth::check() && Auth::user()->is_admin)
                 <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                     {{ __('Admin') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
+                    {{ __('Manage Spots') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('admin.settings') }}" :active="request()->routeIs('admin.settings')">
                     {{ __('Settings') }}
