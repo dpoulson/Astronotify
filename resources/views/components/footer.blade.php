@@ -1,8 +1,16 @@
 <footer class="bg-slate-950 border-t border-slate-800 py-6 relative z-10 w-full mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-slate-400 text-sm">
-        <div class="mb-4 md:mb-0 flex flex-col md:flex-row items-center md:items-start text-center md:text-left space-y-1 md:space-y-0 md:space-x-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-slate-400 text-sm gap-4">
+        <div class="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-3 text-center sm:text-left">
             <span>&copy; {{ date('Y') }} {{ config('app.name', 'Astronotify') }}.</span>
             <span>A project by <a href="https://we-make-things.co.uk/" target="_blank" rel="noopener noreferrer" class="text-purple-400 hover:text-purple-300 font-semibold transition-colors">We Make Things</a>.</span>
+            <span class="hidden sm:inline text-slate-700">&bull;</span>
+            <div class="flex items-center space-x-3 text-xs">
+                <a href="{{ route('about') }}" class="text-slate-400 hover:text-slate-200 transition-colors">About</a>
+                <span>&bull;</span>
+                <a href="{{ route('faq') }}" class="text-slate-400 hover:text-slate-200 transition-colors">Help &amp; FAQ</a>
+                <span>&bull;</span>
+                <a href="{{ route('privacy') }}" class="text-slate-400 hover:text-purple-400 transition-colors">Privacy</a>
+            </div>
         </div>
         
         <div class="flex items-center space-x-4">

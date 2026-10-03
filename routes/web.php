@@ -33,6 +33,14 @@ Route::get('/help', function () {
     return redirect()->route('faq');
 })->name('help');
 
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/privacy-policy', function () {
+    return redirect()->route('privacy');
+})->name('policy.show');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

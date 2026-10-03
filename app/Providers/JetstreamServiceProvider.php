@@ -24,6 +24,8 @@ class JetstreamServiceProvider extends ServiceProvider
         $this->configurePermissions();
 
         Jetstream::deleteUsersUsing(DeleteUser::class);
+
+        \Livewire\Livewire::component('profile.delete-user-form', \App\Livewire\DeleteUserForm::class);
     }
 
     /**

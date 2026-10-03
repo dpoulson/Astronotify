@@ -38,6 +38,7 @@
                     <a href="#how-it-works" class="hover:text-purple-300 transition-colors">How It Works</a>
                     <a href="{{ route('about') }}" class="hover:text-purple-300 transition-colors">About</a>
                     <a href="{{ route('faq') }}" class="hover:text-purple-300 transition-colors">Help &amp; FAQ</a>
+                    <a href="{{ route('privacy') }}" class="hover:text-purple-300 transition-colors">Privacy</a>
                 </nav>
 
                 <div class="flex items-center gap-3">
@@ -301,6 +302,67 @@
                             <p class="text-sm text-slate-400 leading-relaxed">
                                 Our engine calculates orbits and analyzes daily forecasts. When conditions match your criteria, you get a clean summary email so you can set up your telescope.
                             </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy & Data Sovereignty Section (Marketing Emphasis) -->
+            <section class="py-16 border-t border-slate-900 bg-slate-950/60">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+                        <div class="absolute -top-12 -right-12 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div class="relative z-10 text-center max-w-3xl mx-auto mb-10">
+                            <span class="text-xs uppercase font-extrabold tracking-widest text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 rounded-full inline-block mb-3">
+                                Privacy by Design
+                            </span>
+                            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-3">
+                                Built for Stargazers, Not Data Brokers
+                            </h2>
+                            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                                Observing the cosmos shouldn't require surrendering your personal privacy. We believe in minimal data collection, zero ad tracking, and absolute user sovereignty.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-2">
+                                <div class="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-700/50 flex items-center justify-center text-xl mb-3">
+                                    🛡️
+                                </div>
+                                <h3 class="text-base font-bold text-white">Zero Tracking &amp; No Harvesting</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    No advertising pixels, no third-party cookies, no fingerprinting scripts. We never track your activity across the web or sell your data.
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-2">
+                                <div class="w-10 h-10 rounded-xl bg-blue-950/80 border border-blue-700/50 flex items-center justify-center text-xl mb-3">
+                                    🎯
+                                </div>
+                                <h3 class="text-base font-bold text-white">Purpose-Bound &amp; No Spam</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Your data is used strictly for weather queries and orbital math. No marketing spam, no sponsor pitches—only your requested alerts and rare critical service updates.
+                                </p>
+                            </div>
+
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-2">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-xl mb-3">
+                                    🗑️
+                                </div>
+                                <h3 class="text-base font-bold text-white">Full Control &amp; Total Erasure</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Delete your account at any moment. All saved locations, coordinates, and predictions are permanently purged from our database immediately.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 text-center relative z-10">
+                            <a href="{{ route('privacy') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-400 hover:text-purple-300 transition-colors">
+                                <span>Read our full Privacy Policy &amp; Data Protection Pledge</span>
+                                <span>&rarr;</span>
+                            </a>
                         </div>
                     </div>
                 </div>

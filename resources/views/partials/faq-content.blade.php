@@ -69,6 +69,15 @@
             <span>🔔</span>
             <span>Alerts &amp; Deduplication</span>
         </button>
+        <button
+            type="button"
+            @click="activeTab = 'privacy'"
+            :class="activeTab === 'privacy' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2"
+        >
+            <span>🛡️</span>
+            <span>Privacy &amp; Data Control</span>
+        </button>
     </div>
 
     <!-- TAB 1: ISS Transits & Geometry -->
@@ -255,6 +264,60 @@
                         <p class="text-slate-400">Each location has independent toggles for Stargazing Alerts, Solar Transits, and Lunar Transits. Every alert email also contains a secure, one-click link in the footer to manage your preferences or unsubscribe without needing to log in.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: Privacy & Data Control -->
+    <div x-show="activeTab === 'privacy'" class="space-y-6">
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <span class="text-purple-400">#</span>
+                Data Privacy, Zero Tracking &amp; Full User Control
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                Astronotify is committed to absolute data transparency and user sovereignty. Here is how your information is handled:
+            </p>
+
+            <div class="space-y-3 pt-2 text-xs">
+                <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+                    <strong class="text-emerald-400 block font-semibold text-sm">🛡️ Zero Tracking &amp; No Data Harvesting</strong>
+                    <p class="text-slate-300 leading-relaxed">
+                        We do not track your activity across websites, utilize advertising networks, or install behavioral analytics pixels. We never harvest or compile telemetry on user habits.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+                    <strong class="text-blue-400 block font-semibold text-sm">🔭 Data Exclusively Used for This Application</strong>
+                    <p class="text-slate-300 leading-relaxed">
+                        Your account information and location coordinates are used solely to query meteorological weather forecasts and evaluate orbital geometry for the ISS passing across the Sun or Moon. Coordinates are sent securely in server-to-server weather queries without personal identifiers. We do not track your device GPS in the background.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+                    <strong class="text-amber-400 block font-semibold text-sm">🚫 Strictly No Marketing Emails or Data Selling</strong>
+                    <p class="text-slate-300 leading-relaxed">
+                        Your data is never sold, leased, or shared with third parties or data brokers. We do not send marketing promotions, sponsored newsletters, or partner pitches. The only emails you ever receive are your chosen stargazing alerts, account security links (like password resets), and rare critical app announcements.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+                    <strong class="text-purple-400 block font-semibold text-sm">🗑️ Full Control: Instant &amp; Complete Account Deletion</strong>
+                    <p class="text-slate-300 leading-relaxed">
+                        You can delete your account at any time from your Profile settings. When deleted, your account credentials, all saved observing locations, coordinate thresholds, and cached predictions are erased immediately from our databases. Only anonymous, non-personal aggregate counters remain so the platform's background processing stays stable.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Callout Link to Privacy Policy -->
+            <div class="p-4 rounded-xl bg-purple-950/40 border border-purple-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
+                <div>
+                    <span class="text-sm font-bold text-white block">Looking for the complete legal &amp; technical policy?</span>
+                    <span class="text-xs text-slate-400">Read our dedicated Privacy &amp; Data Sovereignty page for full details.</span>
+                </div>
+                <a href="{{ route('privacy') }}" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transition-all shrink-0">
+                    Read Privacy Policy &rarr;
+                </a>
             </div>
         </div>
     </div>

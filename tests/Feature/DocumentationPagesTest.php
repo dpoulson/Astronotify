@@ -53,4 +53,40 @@ class DocumentationPagesTest extends TestCase
         $response = $this->get('/help');
         $response->assertRedirect('/faq');
     }
+
+    public function test_privacy_page_accessible_to_guest_and_user(): void
+    {
+        // Guest
+        $response = $this->get('/privacy');
+        $response->assertStatus(200);
+        $response->assertSee('Privacy Policy &amp; Data Protection', false);
+        $response->assertSee('Zero Tracking &amp; No Harvesting', false);
+        $response->assertSee('Account Deletion &amp; Immediate Data Purge', false);
+
+        // Alias route /privacy-policy
+        $aliasResponse = $this->get('/privacy-policy');
+        $aliasResponse->assertRedirect('/privacy');
+
+        // Authenticated user
+        $user = User::factory()->create();
+        $authResponse = $this->actingAs($user)->get('/privacy');
+        $authResponse->assertStatus(200);
+        $authResponse->assertSee('Privacy Policy &amp; Data Protection', false);
+    }
+
+    public function test_faq_contains_privacy_and_data_control_tab(): void
+    {
+        $response = $this->get('/faq');
+        $response->assertStatus(200);
+        $response->assertSee('Privacy &amp; Data Control', false);
+        $response->assertSee('Zero Tracking &amp; No Data Harvesting', false);
+    }
+
+    public function test_welcome_page_highlights_privacy_guarantees(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('Privacy by Design');
+        $response->assertSee('Built for Stargazers, Not Data Brokers');
+    }
 }

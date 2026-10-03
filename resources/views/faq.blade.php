@@ -29,6 +29,7 @@
                 <div class="flex items-center gap-6">
                     <a href="{{ route('about') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About</a>
                     <a href="{{ route('faq') }}" class="text-sm font-medium text-purple-400">Help &amp; FAQ</a>
+                    <a href="{{ route('privacy') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Privacy</a>
                     <a href="{{ route('login') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Log in</a>
                     <a href="{{ route('register') }}" class="text-xs font-semibold px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg transition-transform transform hover:scale-105">Get Started</a>
                 </div>
