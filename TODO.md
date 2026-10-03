@@ -14,6 +14,7 @@
 - [x] H **Manual trigger buttons** in admin UI for `weather:fetch` and `weather:iss-transits` (instead of SSH + artisan)
 - [x] M **Failed job queue** — surface any queued email failures in the admin dashboard with retry button
 - [x] H **Anti spam accounts** — honeypot field, minimum form submission timing check, and email verification
+- [x] M **Fix spots admin table line wrapping** — applied `whitespace-nowrap` and `min-w-full` across all columns in `/admin/spots` so badges, coordinates, and buttons stay on single lines
 
 ## 📄 Pages
 - [x] M **Update About page** — reflect current feature set (ISS transits, elevation support, solar/lunar path diagrams, etc.)
@@ -51,6 +52,7 @@
 - [x] H **Public Stargazing Spots Directory (`/spots`)** — 100 curated dark-sky locations worldwide (concentrated on UK, EU, USA, and Canada) with Bortle scale ratings, 4-night cloud forecasts, and SGP4 modeled ISS transit predictions
 - [x] H **Admin Stargazing Spots Manager (`/admin/spots`)** — full CRUD admin dashboard for adding, editing, filtering, and deactivating curated dark-sky locations on request
 - [x] H **Public Transit Pass Permalinks (`/transit/{public_token}`)** — dedicated shareable pass pages with celestial orbital chord diagrams, telemetry, 1-click Google Calendar / iCal exports, and OpenGraph social preview cards
+- [ ] M **Interactive Stargazing Spots Map** — display all curated spots on an interactive dark-sky map (Leaflet/MapLibre) with Bortle scale color-coding and popup forecast summaries
 - [ ] M **Embeddable Club Widget (`<script>` / `<iframe>`)** — lightweight embeddable widget for local astronomical societies displaying tonight's viewing index and next ISS transit with backlink to Astronotify
 - [ ] M **Astronomy Society Discord / Matrix / Telegram Webhooks** — automated bot dispatcher to broadcast daily viewing conditions and transit alerts directly into club chats
 - [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof

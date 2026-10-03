@@ -77,21 +77,21 @@
         {{-- Spots Table --}}
         <div class="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300">
+                <table class="min-w-full text-left text-sm text-slate-300">
                     <thead class="text-xs uppercase bg-slate-950/80 text-slate-400 border-b border-slate-800">
                         <tr>
-                            <th class="px-6 py-4">Spot &amp; Region</th>
-                            <th class="px-6 py-4">Dark Sky Status</th>
-                            <th class="px-6 py-4">Bortle</th>
-                            <th class="px-6 py-4">Coordinates / Elev</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Spot &amp; Region</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Dark Sky Status</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Bortle</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Coordinates / Elev</th>
+                            <th class="px-6 py-4 whitespace-nowrap">Status</th>
+                            <th class="px-6 py-4 whitespace-nowrap text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800">
                         @forelse($spots as $spot)
                             <tr class="hover:bg-slate-800/40 transition">
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="font-bold text-white flex items-center gap-1.5">
                                         <a href="{{ route('spots.show', $spot->slug) }}" target="_blank" class="hover:text-purple-400 transition underline decoration-slate-700 underline-offset-2">
                                             {{ $spot->name }}
@@ -101,7 +101,7 @@
                                         {{ $spot->region ? $spot->region . ', ' : '' }}{{ $spot->country }}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-xs">
+                                <td class="px-6 py-4 whitespace-nowrap text-xs">
                                     @if($spot->dark_sky_status)
                                         <span class="inline-block px-2.5 py-1 rounded-lg bg-indigo-950/80 text-indigo-300 border border-indigo-500/30 font-medium">
                                             {{ $spot->dark_sky_status }}
@@ -110,16 +110,16 @@
                                         <span class="text-slate-600">—</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2.5 py-1 rounded-lg text-xs font-bold border {{ $spot->bortle_color }}">
                                         Bortle {{ $spot->bortle_class }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-xs font-mono text-slate-400">
+                                <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400">
                                     <div>{{ $spot->latitude }}°, {{ $spot->longitude }}°</div>
                                     <div class="text-slate-500">{{ $spot->elevation }}m elev</div>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <button 
                                         type="button" 
                                         wire:click="toggleActive({{ $spot->id }})" 
@@ -128,7 +128,7 @@
                                         {{ $spot->is_active ? 'Active' : 'Disabled' }}
                                     </button>
                                 </td>
-                                <td class="px-6 py-4 text-right space-x-2">
+                                <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
                                     <button 
                                         wire:click="editSpot({{ $spot->id }})" 
                                         class="px-3 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-500/40 text-blue-300 text-xs font-semibold transition"
