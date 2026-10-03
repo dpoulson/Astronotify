@@ -28,6 +28,9 @@
             background-color: #020617 !important;
             font-family: inherit !important;
         }
+        .leaflet-tile-pane {
+            filter: invert(1) hue-rotate(210deg) saturate(0.6) brightness(0.8) contrast(1.2);
+        }
         .leaflet-popup-content-wrapper {
             background: rgba(15, 23, 42, 0.95) !important;
             color: #f8fafc !important;
@@ -559,9 +562,8 @@
 
                         L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
-                            subdomains: 'abcd',
+                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
                             maxZoom: 19
                         }).addTo(this.map);
 
