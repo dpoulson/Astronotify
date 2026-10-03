@@ -142,4 +142,30 @@ class PublicSpotsTest extends TestCase
             'longitude' => -3.43,
         ]);
     }
+
+    public function test_spots_map_view_can_be_selected_and_supplies_spots(): void
+    {
+        StargazingSpot::create([
+            'name' => 'Kielder Observatory',
+            'slug' => 'kielder-observatory',
+            'country' => 'United Kingdom',
+            'region' => 'Northumberland',
+            'latitude' => 55.2333,
+            'longitude' => -2.5833,
+            'elevation' => 360,
+            'bortle_class' => 2,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(\App\Livewire\PublicSpotsList::class)
+            ->call('setView', 'map')
+            ->assertSet('view', 'map')
+            ->assertSee('Global Map')
+            ->assertSee('Kielder Observatory');
+
+        $response = $this->get('/spots?view=map');
+        $response->assertStatus(200);
+        $response->assertSee('Global Map');
+        $response->assertSee('stargazing-spots-map');
+    }
 }

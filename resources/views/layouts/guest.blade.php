@@ -32,6 +32,7 @@
 
         <!-- Styles -->
         @livewireStyles
+        @stack('styles')
     </head>
     <body class="flex flex-col min-h-screen">
         <div class="font-sans text-gray-900 dark:text-gray-100 antialiased flex-grow flex flex-col">
@@ -40,5 +41,6 @@
         <x-footer />
 
         @livewireScripts
+        @stack('scripts')
     </body>
 </html>

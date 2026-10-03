@@ -53,7 +53,7 @@
 - [x] H **Public Stargazing Spots Directory (`/spots`)** — 100 curated dark-sky locations worldwide (concentrated on UK, EU, USA, and Canada) with Bortle scale ratings, 4-night cloud forecasts, and SGP4 modeled ISS transit predictions
 - [x] H **Admin Stargazing Spots Manager (`/admin/spots`)** — full CRUD admin dashboard for adding, editing, filtering, and deactivating curated dark-sky locations on request
 - [x] H **Public Transit Pass Permalinks (`/transit/{public_token}`)** — dedicated shareable pass pages with celestial orbital chord diagrams, telemetry, 1-click Google Calendar / iCal exports, and OpenGraph social preview cards
-- [ ] M **Interactive Stargazing Spots Map** — display all curated spots on an interactive dark-sky map (Leaflet/MapLibre) with Bortle scale color-coding and popup forecast summaries
+- [x] M **Interactive Stargazing Spots Map** — display all curated spots on an interactive dark-sky map (Leaflet) with Bortle scale color-coding, proximity geolocation finder, and popup forecast summaries
 - [ ] M **Embeddable Club Widget (`<script>` / `<iframe>`)** — lightweight embeddable widget for local astronomical societies displaying tonight's viewing index and next ISS transit with backlink to Astronotify
 - [ ] M **Astronomy Society Discord / Matrix / Telegram Webhooks** — automated bot dispatcher to broadcast daily viewing conditions and transit alerts directly into club chats
 - [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
