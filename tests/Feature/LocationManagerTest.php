@@ -247,4 +247,19 @@ class LocationManagerTest extends TestCase
         $this->assertEquals('🌓', $moon['emoji']);
         $this->assertEquals(51, $moon['illumination']);
     }
+
+    public function test_location_can_be_set_via_gps_coordinates(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->call('setGpsCoordinates', 54.04567, -2.79812, 45, 'Lancaster')
+            ->assertSet('latitude', 54.04567)
+            ->assertSet('longitude', -2.79812)
+            ->assertSet('elevation', 45)
+            ->assertSet('town', 'Lancaster')
+            ->assertSet('name', 'Lancaster')
+            ->assertDispatched('open-form');
+    }
 }

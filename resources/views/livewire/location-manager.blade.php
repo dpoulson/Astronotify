@@ -1,7 +1,67 @@
 <div 
     x-data="{ 
         formOpen: {{ ($locations->isEmpty() || $editingLocationId) ? 'true' : 'false' }},
-        transitModal: null
+        transitModal: null,
+        locating: false,
+        locatingMsg: 'Locating...',
+        gpsError: null,
+        async getGpsLocation() {
+            if (!navigator.geolocation) {
+                this.gpsError = 'Geolocation is not supported by your device.';
+                return;
+            }
+            this.locating = true;
+            this.locatingMsg = 'Acquiring GPS fix...';
+            this.gpsError = null;
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = parseFloat(pos.coords.latitude.toFixed(5));
+                const lon = parseFloat(pos.coords.longitude.toFixed(5));
+                let elevation = (pos.coords.altitude !== null && !isNaN(pos.coords.altitude)) ? Math.round(pos.coords.altitude) : null;
+
+                if (elevation === null) {
+                    this.locatingMsg = 'Fetching elevation...';
+                    try {
+                        const elevRes = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+                        if (elevRes.ok) {
+                            const elevData = await elevRes.json();
+                            if (elevData.elevation && elevData.elevation.length > 0) {
+                                elevation = Math.round(elevData.elevation[0]);
+                            }
+                        }
+                    } catch(e) {}
+                }
+
+                this.locatingMsg = 'Finding town name...';
+                let townName = '';
+                try {
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (geoRes.ok) {
+                        const geoData = await geoRes.json();
+                        if (geoData.address) {
+                            townName = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb || geoData.address.county || '';
+                        }
+                    }
+                } catch(e) {}
+
+                this.locating = false;
+                this.formOpen = true;
+                $wire.setGpsCoordinates(lat, lon, elevation ?? 0, townName);
+            }, (err) => {
+                this.locating = false;
+                let msg = 'Could not get GPS location.';
+                if (err.code === 1) msg = 'Location permission denied. Please allow access in browser settings.';
+                else if (err.code === 2) msg = 'Location unavailable. Ensure device GPS is enabled.';
+                else if (err.code === 3) msg = 'Location request timed out. Please try again.';
+                this.gpsError = msg;
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            });
+        }
     }"
     x-on:open-form.window="formOpen = true"
     x-on:close-form.window="formOpen = false"
@@ -21,6 +81,18 @@
                 Stargazing Locations
             </h1>
             <p class="mt-2 text-lg text-slate-400">Configure your viewing spots and sky conditions.</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <button 
+                    type="button" 
+                    @click="getGpsLocation()" 
+                    :disabled="locating" 
+                    class="inline-flex items-center gap-2 py-2 px-4 bg-purple-950/60 hover:bg-purple-900/70 border border-purple-500/40 rounded-full text-xs font-semibold text-purple-200 shadow-sm transition-all active:scale-95"
+                >
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span x-text="locating ? locatingMsg : '📍 Quick Add Current GPS Location'">📍 Quick Add Current GPS Location</span>
+                </button>
+            </div>
+            <p x-show="gpsError" x-text="gpsError" class="text-xs text-amber-400 mt-2" x-cloak></p>
         </div>
 
         @if (session()->has('message'))
@@ -73,7 +145,7 @@
                 <svg :class="open ? 'transform rotate-180' : ''" class="w-5 h-5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
             <div x-show="open" x-collapse x-cloak>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
                     @foreach($upcomingTransits as $transit)
                         @php
                             // SVG canvas: 160×160 viewBox, disk radius = 50px
@@ -307,20 +379,20 @@
         <div class="flex flex-col md:flex-row gap-8 items-start w-full">
             <!-- Form Card Column -->
             <div 
-                :class="formOpen ? 'w-full md:max-w-[33%]' : 'w-full md:max-w-[4rem]'"
-                class="transition-all duration-500 ease-in-out shrink-0 w-full"
+                :class="formOpen ? 'w-full md:w-[380px] lg:w-[420px]' : 'w-full md:w-16'"
+                class="transition-all duration-300 ease-in-out shrink-0 w-full md:sticky md:top-6 self-start"
             >
-                <div class="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl transition-all duration-500 overflow-hidden relative min-h-[60px] md:min-h-[520px] h-full flex flex-col justify-between">
+                <div class="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl transition-all duration-300 overflow-hidden relative min-h-[56px] md:min-h-[520px] flex flex-col justify-between">
                     
                     <!-- Expanded Form Content -->
                     <div 
                         x-show="formOpen"
-                        x-transition:enter="transition ease-out duration-300 delay-150"
-                        x-transition:enter-start="opacity-0 transform -translate-x-4"
+                        x-transition:enter="transition ease-out duration-300 delay-100"
+                        x-transition:enter-start="opacity-0 transform -translate-x-2"
                         x-transition:enter-end="opacity-100 transform translate-x-0"
-                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave="transition ease-in duration-150"
                         x-transition:leave-start="opacity-100 transform translate-x-0"
-                        x-transition:leave-end="opacity-0 transform -translate-x-4"
+                        x-transition:leave-end="opacity-0 transform -translate-x-2"
                         class="p-6 space-y-6"
                     >
                         <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
@@ -337,6 +409,36 @@
                                 <label class="block text-sm font-medium text-slate-300">Location Name</label>
                                 <input type="text" wire:model="name" class="mt-1 block w-full bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500 placeholder-slate-500" placeholder="e.g. Home">
                                 @error('name') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- GPS Location Button -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1.5">Coordinates & Elevation</label>
+                                <button 
+                                    type="button" 
+                                    @click="getGpsLocation()" 
+                                    :disabled="locating" 
+                                    class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-purple-900/50 to-blue-900/50 hover:from-purple-800/70 hover:to-blue-800/70 text-purple-200 border border-purple-500/40 rounded-xl transition-all font-medium text-sm shadow-md active:scale-98"
+                                >
+                                    <template x-if="!locating">
+                                        <span class="flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span>Use My Current GPS</span>
+                                        </span>
+                                    </template>
+                                    <template x-if="locating">
+                                        <span class="flex items-center gap-2">
+                                            <div class="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                                            <span x-text="locatingMsg" class="text-xs">Acquiring GPS fix...</span>
+                                        </span>
+                                    </template>
+                                </button>
+                                <p x-show="gpsError" x-text="gpsError" class="text-xs text-amber-400 mt-1" x-cloak></p>
+                            </div>
+
+                            <div class="relative flex items-center justify-center my-1">
+                                <div class="border-t border-slate-700/60 w-full"></div>
+                                <span class="bg-slate-800 px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider absolute">or search by name</span>
                             </div>
 
                             <div>
@@ -712,10 +814,30 @@
                         </div>
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center p-12 bg-slate-800/20 backdrop-blur-sm border border-dashed border-slate-700 rounded-3xl text-slate-500">
-                        <svg class="w-16 h-16 mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                        <p class="text-lg">No locations saved yet.</p>
-                        <p class="text-sm">Add one to start monitoring stargazing conditions.</p>
+                    <div class="flex flex-col items-center justify-center p-10 bg-slate-800/20 backdrop-blur-sm border border-dashed border-slate-700/80 rounded-3xl text-center">
+                        <div class="w-16 h-16 rounded-full bg-purple-900/30 border border-purple-500/30 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-1">No locations saved yet</h3>
+                        <p class="text-sm text-slate-400 max-w-sm mb-6">Add a location to begin receiving stargazing condition alerts and ISS transit forecasts.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <button 
+                                type="button" 
+                                @click="getGpsLocation()" 
+                                :disabled="locating" 
+                                class="inline-flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-bold shadow-lg shadow-purple-900/30 transition-all active:scale-95"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>Add My Current GPS</span>
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="formOpen = true; $el.blur()" 
+                                class="py-3 px-6 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-semibold transition-all"
+                            >
+                                Enter Manually
+                            </button>
+                        </div>
                     </div>
                 @endforelse
             </div>
@@ -773,12 +895,12 @@
         <div
             x-show="transitModal === {{ $transit->id }}"
             x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
             x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
-            class="relative bg-slate-900 border {{ $transit->type === 'sun' ? 'border-amber-500/30' : 'border-blue-500/30' }} rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row w-full max-w-3xl"
+            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            class="relative bg-slate-900 border {{ $transit->type === 'sun' ? 'border-amber-500/30' : 'border-blue-500/30' }} rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row w-full max-w-3xl max-h-[92vh] overflow-y-auto"
         >
             {{-- Close button --}}
             <button @click="transitModal = null; $el.blur()" class="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">

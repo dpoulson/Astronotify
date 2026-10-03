@@ -1,0 +1,36 @@
+{
+  "packageId": "com.astronotify.app",
+  "host": "astronotify.com",
+  "name": "Astronotify",
+  "launcherName": "Astronotify",
+  "themeColor": "#0F172A",
+  "navigationColor": "#0F172A",
+  "backgroundColor": "#0F172A",
+  "enableNotifications": true,
+  "startUrl": "/dashboard",
+  "iconUrl": "https://astronotify.com/images/icon-512.png",
+  "maskableIconUrl": "https://astronotify.com/images/icon-maskable-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "astronotify"
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://astronotify.com/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}

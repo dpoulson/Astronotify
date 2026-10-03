@@ -21,10 +21,10 @@
 - [x] M **Landing / marketing page** — modern redesign of welcome page with transit previews, feature pillars, and navigation
 
 ## 🗺️ Dashboard UX
-- [ ] L **Fix jerk on Add Location expand/collapse** — the sidebar width transition causes a layout reflow when scrolled down; investigate whether `position: sticky` or `overflow: hidden` on the parent resolves it without breaking the layout
-- [ ] H **Mobile layout pass** — test and tighten the location card grid and transit modal on small screens
-- [ ] L **Transit card grid columns** — currently 4-col on large screens; consider making it 2-col with a larger diagram by default
-- [ ] L **Animate the transit modal** entrance on mobile (currently uses `scale-95 → scale-100` which clips on small viewports)
+- [x] L **Fix jerk on Add Location expand/collapse** — stabilized layout with fixed column width transitions and sticky positioning
+- [x] H **Mobile layout pass** — mobile-friendly GPS auto-fill, edge-to-edge support, touch targets, and responsive sizing
+- [x] L **Transit card grid columns** — switched to 2-col layout with larger diagrams and responsive spacing
+- [x] L **Animate the transit modal** — replaced scale clipping with mobile translate-y animation and viewport scroll constraint
 
 ## 🔭 ISS / Orbital
 - [x] H **Re-run `weather:iss-transits` after adding a new location** — currently the user has to trigger this manually; consider auto-triggering it from the `save()` Livewire action (queue a job)

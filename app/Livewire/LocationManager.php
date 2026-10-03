@@ -56,6 +56,23 @@ class LocationManager extends Component
             }
         }
     }
+
+    public function setGpsCoordinates($latitude, $longitude, $elevation = 0, $town = '')
+    {
+        $this->latitude = round((float) $latitude, 5);
+        $this->longitude = round((float) $longitude, 5);
+        $this->elevation = (int) $elevation;
+        if ($town) {
+            $this->town = $town;
+            if (empty($this->name)) {
+                $this->name = $town;
+            }
+        } elseif (empty($this->name)) {
+            $this->name = 'Current Location';
+        }
+        $this->dispatch('open-form');
+    }
+
     public function edit($id)
     {
         $location = Auth::user()->locations()->find($id);
