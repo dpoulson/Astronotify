@@ -17,6 +17,12 @@
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
         <link rel="apple-touch-icon" href="{{ asset('images/icon-192.png') }}">
 
+        <!-- Social Meta -->
+        <meta property="og:site_name" content="Astronotify">
+        <meta property="og:image" content="{{ asset('images/og-card.png') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="{{ asset('images/og-card.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

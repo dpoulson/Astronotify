@@ -4,10 +4,60 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Astronotify — Automated Stargazing Alerts &amp; ISS Transit Predictions</title>
-        <meta name="description" content="Personal automated stargazing assistant. Track weather thresholds, ISS solar/lunar transits, moon phases, and light pollution for your custom observing locations.">
-        
-        <!-- Favicon -->
+        <meta name="description" content="Personal automated stargazing assistant. Track weather thresholds, ISS solar/lunar transits, moon phases, and light pollution for your custom observing locations. Zero tracking, 100% free.">
+        <link rel="canonical" href="{{ url('/') }}">
+
+        <!-- Open Graph / Facebook / Discord / Reddit -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url('/') }}">
+        <meta property="og:site_name" content="Astronotify">
+        <meta property="og:title" content="Astronotify — Automated Stargazing Alerts &amp; ISS Transit Predictions">
+        <meta property="og:description" content="Personal automated stargazing assistant. Track weather thresholds, ISS solar/lunar transits, moon phases, and light pollution for your custom observing sites. Zero tracking, 100% free.">
+        <meta property="og:image" content="{{ asset('images/og-card.png') }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:type" content="image/png">
+
+        <!-- Twitter / Bluesky Cards -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ url('/') }}">
+        <meta name="twitter:title" content="Astronotify — Automated Stargazing Alerts &amp; ISS Transit Predictions">
+        <meta name="twitter:description" content="Personal automated stargazing assistant. High-precision ISS solar & lunar transit modeling, local weather thresholds, and zero data tracking.">
+        <meta name="twitter:image" content="{{ asset('images/og-card.png') }}">
+
+        <!-- Favicon & PWA Manifest -->
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#0f172a">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Astronotify">
+
+        <!-- Structured Data (JSON-LD) for Search Engines -->
+        <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "WebApplication",
+            "name": "Astronotify",
+            "url": "{{ url('/') }}",
+            "applicationCategory": "AstronomyApplication, WeatherApplication",
+            "operatingSystem": "All",
+            "description": "Automated stargazing weather alerts, International Space Station (ISS) solar and lunar transit modeling, and dark-sky twilight tracking for amateur astronomers.",
+            "offers": {
+                "@@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "featureList": [
+                "ISS Solar and Lunar transit modeling with high-precision SGP4 orbital propagation",
+                "Automated clear-sky stargazing alerts matching personal weather thresholds",
+                "Open-Meteo high-resolution meteorological forecast integration",
+                "Bortle dark-sky light pollution ratings and moon phase illumination tracking",
+                "Privacy by design: Zero tracking, no data harvesting, immediate account erasure"
+            ]
+        }
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -94,6 +144,22 @@
                             How It Works
                         </a>
                     @endauth
+                </div>
+
+                <!-- Micro Trust & Platform Badges -->
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-2.5 text-xs text-slate-400">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800">
+                        <span>📱</span> Installable Web App (PWA)
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800">
+                        <span>📅</span> Google Calendar &amp; iCal Export
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800">
+                        <span>💬</span> Astronomy Club Pass Sharing
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800">
+                        <span>🛡️</span> Zero Trackers
+                    </span>
                 </div>
 
                 <!-- Showcase Preview Grid -->

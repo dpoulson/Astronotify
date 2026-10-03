@@ -89,4 +89,17 @@ class DocumentationPagesTest extends TestCase
         $response->assertSee('Privacy by Design');
         $response->assertSee('Built for Stargazers, Not Data Brokers');
     }
+
+    public function test_welcome_page_has_open_graph_and_structured_data_tags(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('property="og:image"', false);
+        $response->assertSee('images/og-card.png', false);
+        $response->assertSee('name="twitter:card"', false);
+        $response->assertSee('summary_large_image', false);
+        $response->assertSee('application/ld+json', false);
+        $response->assertSee('WebApplication', false);
+        $this->assertFileExists(public_path('images/og-card.png'));
+    }
 }

@@ -262,4 +262,35 @@ class LocationManagerTest extends TestCase
             ->assertSet('name', 'Lancaster')
             ->assertDispatched('open-form');
     }
+
+    public function test_transit_cards_render_calendar_export_and_share_actions(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Hilltop Site',
+            'latitude' => 54.0,
+            'longitude' => -2.8,
+            'elevation' => 100,
+            'is_active' => true,
+        ]);
+
+        \App\Models\ISSTransit::create([
+            'location_id' => $location->id,
+            'type' => 'sun',
+            'time' => now()->addHours(6),
+            'separation_degrees' => 0.05,
+            'altitude_degrees' => 35.0,
+            'azimuth_degrees' => 190.0,
+            'is_exact_transit' => true,
+        ]);
+
+        Livewire::test(\App\Livewire\LocationManager::class)
+            ->assertSee('calendar.google.com/calendar/render', false)
+            ->assertSee('downloadIcs', false)
+            ->assertSee('shareTransit', false)
+            ->assertSee('WhatsApp', false);
+    }
 }

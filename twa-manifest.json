@@ -1,6 +1,6 @@
 {
   "packageId": "com.astronotify.app",
-  "host": "astronotify.com",
+  "host": "astronotify.org",
   "name": "Astronotify",
   "launcherName": "Astronotify",
   "themeColor": "#0F172A",
@@ -8,8 +8,8 @@
   "backgroundColor": "#0F172A",
   "enableNotifications": true,
   "startUrl": "/dashboard",
-  "iconUrl": "https://astronotify.com/images/icon-512.png",
-  "maskableIconUrl": "https://astronotify.com/images/icon-maskable-512.png",
+  "iconUrl": "https://astronotify.org/images/icon-512.png",
+  "maskableIconUrl": "https://astronotify.org/images/icon-maskable-512.png",
   "appVersionName": "1.0.0",
   "appVersionCode": 1,
   "signingKey": {
@@ -17,7 +17,7 @@
     "alias": "astronotify"
   },
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://astronotify.com/manifest.json",
+  "webManifestUrl": "https://astronotify.org/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "locationDelegation": {

@@ -22,7 +22,7 @@ plugins {
 
 def twaManifest = [
     applicationId: 'com.astronotify.app',
-    hostName: 'astronotify.com', // The domain being opened in the TWA.
+    hostName: 'astronotify.org', // The domain being opened in the TWA.
     launchUrl: '/dashboard', // The start path for the TWA. Must be relative to the domain.
     name: 'Astronotify', // The application name.
     launcherName: 'Astronotify', // The name shown on the Android Launcher.

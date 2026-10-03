@@ -61,8 +61,96 @@
                 timeout: 10000,
                 maximumAge: 60000
             });
+        },
+        showPwaBanner: false,
+        pwaInstalled: false,
+        pwaInstallPrompt: null,
+        shareCopied: false,
+        initPwa() {
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                this.pwaInstalled = true;
+                return;
+            }
+            if (localStorage.getItem('astronotify_dismiss_pwa') === 'true') {
+                return;
+            }
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.pwaInstallPrompt = e;
+                this.showPwaBanner = true;
+            });
+            const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIos && !this.pwaInstalled) {
+                this.showPwaBanner = true;
+            }
+        },
+        async installPwa() {
+            if (this.pwaInstallPrompt) {
+                this.pwaInstallPrompt.prompt();
+                const choice = await this.pwaInstallPrompt.userChoice;
+                if (choice && choice.outcome === 'accepted') {
+                    this.showPwaBanner = false;
+                    this.pwaInstalled = true;
+                }
+                this.pwaInstallPrompt = null;
+            } else {
+                alert('To install on iPhone/iPad: Tap the Share icon at the bottom of Safari, then choose "Add to Home Screen".');
+            }
+        },
+        dismissPwa() {
+            this.showPwaBanner = false;
+            localStorage.setItem('astronotify_dismiss_pwa', 'true');
+        },
+        downloadIcs(summary, location, description, startTimeUtc, endTimeUtc) {
+            const icsLines = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Astronotify//Astronomical Transit Calendar//EN',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
+                'BEGIN:VEVENT',
+                `UID:transit-${Date.now()}@astronotify.org`,
+                `DTSTAMP:${startTimeUtc}`,
+                `DTSTART:${startTimeUtc}`,
+                `DTEND:${endTimeUtc}`,
+                `SUMMARY:${summary}`,
+                `DESCRIPTION:${description.replace(/\\n/g, '\\\\n')}`,
+                `LOCATION:${location}`,
+                'BEGIN:VALARM',
+                'TRIGGER:-PT15M',
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Reminder: ISS Transit in 15 minutes!',
+                'END:VALARM',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ];
+            const blob = new Blob([icsLines.join('\\r\\n')], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', `iss-transit-${startTimeUtc}.ics`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        },
+        async shareTransit(title, text) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: text,
+                        url: 'https://astronotify.org'
+                    });
+                    return;
+                } catch(e) {}
+            }
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                this.shareCopied = true;
+                setTimeout(() => { this.shareCopied = false; }, 3000);
+            }
         }
     }"
+    x-init="initPwa()"
     x-on:open-form.window="formOpen = true"
     x-on:close-form.window="formOpen = false"
     x-on:keydown.escape.window="transitModal = null"
@@ -75,6 +163,41 @@
     </div>
 
     <div class="relative z-10 w-full space-y-12">
+        <!-- PWA / Mobile Install Banner -->
+        <div 
+            x-show="showPwaBanner && !pwaInstalled" 
+            x-transition 
+            style="display: none;"
+            class="p-4 rounded-2xl bg-gradient-to-r from-blue-900/60 via-purple-900/60 to-slate-900/90 border border-purple-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl"
+        >
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-950 border border-purple-700/50 flex items-center justify-center text-xl shrink-0">
+                    📱
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Install Astronotify App</h4>
+                    <p class="text-xs text-slate-300">Fast access to your observing spots, offline pass checks, and instant transit alerts on Android &amp; iOS.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button 
+                    type="button" 
+                    @click="installPwa()" 
+                    class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-md transition-all active:scale-95"
+                >
+                    Install Now
+                </button>
+                <button 
+                    type="button" 
+                    @click="dismissPwa()" 
+                    class="p-2 rounded-xl text-slate-400 hover:text-white transition-colors" 
+                    title="Dismiss"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="text-center">
             <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
@@ -390,6 +513,59 @@
                                         </div>
                                     </div>
                                 @endif
+
+                                {{-- Card Quick Actions --}}
+                                @php
+                                    $tTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
+                                    $tEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
+                                    $tTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
+                                    $gTitle = urlencode("ISS {$tTypeStr} Transit — {$transit->location->name}");
+                                    $gDesc = urlencode("ISS {$tTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: https://astronotify.org");
+                                    $gLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
+                                    $gCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$gTitle}&dates={$tTimeIso}/{$tEndIso}&details={$gDesc}&location={$gLoc}";
+                                    $sSummary = "ISS {$tTypeStr} Transit — {$transit->location->name}";
+                                    $sDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
+                                    $sCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
+                                    $sText = "🛰️ ISS {$tTypeStr} Transit over {$transit->location->name}\n📅 {$sDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$sCloudStr}\nModeled via Astronotify: https://astronotify.org";
+                                @endphp
+                                <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                                    <button 
+                                        type="button" 
+                                        @click="transitModal = {{ $transit->id }}; $el.blur()" 
+                                        class="text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1 group/btn"
+                                    >
+                                        <span>Orbit Diagram</span>
+                                        <span class="transform group-hover/btn:translate-x-0.5 transition-transform">&rarr;</span>
+                                    </button>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <a 
+                                            href="{{ $gCalUrl }}" 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            title="Add to Google Calendar" 
+                                            class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-blue-400 transition-colors"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        </a>
+                                        <button 
+                                            type="button" 
+                                            @click="downloadIcs(@js($sSummary), @js($transit->location->name), @js($sText), @js($tTimeIso), @js($tEndIso))" 
+                                            title="Download iCal (.ics)" 
+                                            class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-purple-400 transition-colors"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            @click="shareTransit(@js($sSummary), @js($sText))" 
+                                            title="Share pass with astronomy friends" 
+                                            class="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 transition-colors"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -1139,6 +1315,42 @@
                             <div class="text-slate-500 text-[10px]">samples recorded</div>
                         </div>
                     </div>
+
+                    {{-- Modal Calendar & Community Share Actions --}}
+                    @php
+                        $mTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
+                        $mEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
+                        $mTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
+                        $mgTitle = urlencode("ISS {$mTypeStr} Transit — {$transit->location->name}");
+                        $mgDesc = urlencode("ISS {$mTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: https://astronotify.org");
+                        $mgLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
+                        $mgCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$mgTitle}&dates={$mTimeIso}/{$mEndIso}&details={$mgDesc}&location={$mgLoc}";
+                        $msSummary = "ISS {$mTypeStr} Transit — {$transit->location->name}";
+                        $msDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
+                        $msCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
+                        $msText = "🛰️ ISS {$mTypeStr} Transit over {$transit->location->name}\n📅 {$msDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$msCloudStr}\nModeled via Astronotify: https://astronotify.org";
+                        $msWhatsApp = "https://api.whatsapp.com/send?text=" . urlencode($msText);
+                    @endphp
+                    <div class="pt-3 border-t border-slate-800 space-y-2">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Add to Calendar &amp; Share with Club</div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ $mgCalUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-950/70 hover:bg-blue-900 border border-blue-500/40 text-blue-200 text-xs font-semibold transition-all">
+                                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Google Calendar</span>
+                            </a>
+                            <button type="button" @click="downloadIcs(@js($msSummary), @js($transit->location->name), @js($msText), @js($mTimeIso), @js($mEndIso))" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/70 hover:bg-purple-900 border border-purple-500/40 text-purple-200 text-xs font-semibold transition-all">
+                                <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span>iCal (.ics)</span>
+                            </button>
+                            <button type="button" @click="shareTransit(@js($msSummary), @js($msText))" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-200 text-xs font-semibold transition-all">
+                                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                <span>Copy / Share Pass</span>
+                            </button>
+                            <a href="{{ $msWhatsApp }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-950/70 hover:bg-green-900 border border-green-500/40 text-green-200 text-xs font-semibold transition-all">
+                                <span>💬 WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-4 text-[10px] text-slate-600 leading-relaxed">
@@ -1155,5 +1367,21 @@
         @endforeach
     </div>
     @endif
+
+    {{-- Toast notification when copying transit details --}}
+    <div 
+        x-show="shareCopied" 
+        x-transition:enter="transition ease-out duration-200" 
+        x-transition:enter-start="opacity-0 translate-y-2" 
+        x-transition:enter-end="opacity-100 translate-y-0" 
+        x-transition:leave="transition ease-in duration-150" 
+        x-transition:leave-start="opacity-100 translate-y-0" 
+        x-transition:leave-end="opacity-0 translate-y-2" 
+        style="display: none;"
+        class="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl bg-emerald-950 border border-emerald-500/50 text-emerald-200 text-xs font-bold shadow-2xl flex items-center gap-2"
+    >
+        <span>✓</span>
+        <span>Transit details copied! Ready to paste into WhatsApp, Discord, or forums.</span>
+    </div>
 
 </div>
