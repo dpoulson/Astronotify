@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\ISSTransit;
 use App\Models\Location;
+use App\Models\Setting;
 use App\Models\StargazingSpot;
 use Carbon\Carbon;
 use Exception;
@@ -80,6 +81,13 @@ class PublicSpotView extends Component
 
         if ($this->isSavedByUser) {
             session()->flash('message', "You are already tracking {$this->spot->name} in your dashboard.");
+
+            return redirect()->route('dashboard');
+        }
+
+        $maxLocations = (int) Setting::get('max_locations_per_user', 10);
+        if (! Auth::user()->is_admin && Auth::user()->locations()->count() >= $maxLocations) {
+            session()->flash('error', "You have reached the maximum limit of {$maxLocations} observing locations.");
 
             return redirect()->route('dashboard');
         }

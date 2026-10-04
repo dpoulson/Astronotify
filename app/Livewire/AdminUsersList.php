@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +17,7 @@ use Livewire\WithPagination;
  */
 class AdminUsersList extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     /**
@@ -24,6 +27,11 @@ class AdminUsersList extends Component
      */
     public function deleteUser(int|string $id): void
     {
+        // Prevent deleting own account or root admin from admin user list
+        if ((int) $id === (int) Auth::id() || (int) $id === 1) {
+            return;
+        }
+
         $user = User::find($id);
         if ($user) {
             $user->locations()->delete();

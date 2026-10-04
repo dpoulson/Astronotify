@@ -40,12 +40,14 @@ class AdminSettingsTest extends TestCase
             ->set('forecast_days', 10)
             ->set('grouping_decimal_places', 2)
             ->set('conjunction_threshold', 1.25)
+            ->set('max_locations_per_user', 15)
             ->call('save')
             ->assertHasNoErrors();
 
         $this->assertEquals(10, Setting::where('key', 'forecast_days')->value('value'));
         $this->assertEquals(2, Setting::where('key', 'grouping_decimal_places')->value('value'));
         $this->assertEquals(1.25, Setting::where('key', 'conjunction_threshold')->value('value'));
+        $this->assertEquals(15, Setting::where('key', 'max_locations_per_user')->value('value'));
     }
 
     public function test_admin_settings_validation_errors(): void
@@ -57,11 +59,13 @@ class AdminSettingsTest extends TestCase
             ->set('forecast_days', 20) // max is 16
             ->set('grouping_decimal_places', 5) // max is 4
             ->set('conjunction_threshold', 0) // min is 0.01
+            ->set('max_locations_per_user', 0) // min is 1
             ->call('save')
             ->assertHasErrors([
                 'forecast_days' => 'max',
                 'grouping_decimal_places' => 'max',
                 'conjunction_threshold' => 'min',
+                'max_locations_per_user' => 'min',
             ]);
     }
 }

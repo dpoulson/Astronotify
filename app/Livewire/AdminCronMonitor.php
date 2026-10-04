@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\CommandLog;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -15,6 +16,7 @@ use Livewire\WithPagination;
  */
 class AdminCronMonitor extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     /**

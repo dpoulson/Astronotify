@@ -15,7 +15,7 @@
                 <div class="p-6 bg-slate-900/60 rounded-2xl border border-slate-700">
                     <h3 class="text-xl font-semibold mb-4 text-slate-200">Cron Configurations</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2" title="How many days ahead the Open-Meteo API should fetch?">Forecast Window (Days)</label>
                             <input type="number" wire:model="forecast_days" class="w-full bg-slate-800 border border-slate-600 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500" min="1" max="16">
@@ -35,6 +35,13 @@
                             <input type="number" step="0.01" wire:model="conjunction_threshold" class="w-full bg-slate-800 border border-slate-600 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500" min="0.01" max="5.00">
                             <p class="text-xs text-slate-400 mt-2">Passes within this angular separation threshold of the Sun/Moon are captured as transits/conjunctions.</p>
                             @error('conjunction_threshold') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" title="Maximum observing locations allowed per regular user">Max Locations Per User</label>
+                            <input type="number" wire:model="max_locations_per_user" class="w-full bg-slate-800 border border-slate-600 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500" min="1" max="100">
+                            <p class="text-xs text-slate-400 mt-2">Caps how many observing sites standard users can track to protect Open-Meteo API quotas.</p>
+                            @error('max_locations_per_user') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>

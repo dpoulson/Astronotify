@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -14,6 +15,8 @@ use Livewire\Component;
  */
 class AdminUserView extends Component
 {
+    use AuthorizesAdminAccess;
+
     public User $user;
 
     /**

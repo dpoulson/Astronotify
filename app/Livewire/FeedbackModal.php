@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\DiscordWebhookService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -144,6 +145,16 @@ class FeedbackModal extends Component
 
             return;
         }
+
+        $throttleKey = 'feedback:'.request()->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $this->addError('title', "Too many submissions. Please wait {$seconds} seconds before trying again.");
+
+            return;
+        }
+
+        RateLimiter::hit($throttleKey, 900);
 
         $rules = [
             'name' => 'required|string|min:2|max:100',

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\Location;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -15,6 +16,7 @@ use Livewire\WithPagination;
  */
 class AdminLocationsList extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Mail\TestConnectionMail;
 use Exception;
 use Illuminate\Contracts\View\View;
@@ -20,6 +21,7 @@ use Livewire\WithPagination;
  */
 class AdminEmailQueue extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     // Test Email fields

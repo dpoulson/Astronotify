@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Mail\LocationTestMail;
 use App\Models\ISSTransit;
+use App\Models\Setting;
 use App\Models\WeatherCondition;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -154,6 +155,13 @@ class LocationManager extends Component
             }
             session()->flash('message', 'Location updated successfully.');
         } else {
+            $maxLocations = (int) Setting::get('max_locations_per_user', 10);
+            if (! Auth::user()->is_admin && Auth::user()->locations()->count() >= $maxLocations) {
+                $this->addError('name', "You have reached the limit of {$maxLocations} observing locations.");
+
+                return;
+            }
+
             $location = Auth::user()->locations()->create([
                 'name' => $this->name,
                 'latitude' => $this->latitude,

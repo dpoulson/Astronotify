@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\StargazingSpot;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,7 @@ use Livewire\WithPagination;
  */
 class AdminStargazingSpots extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     public string $search = '';

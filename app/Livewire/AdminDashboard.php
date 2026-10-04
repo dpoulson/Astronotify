@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\Location;
 use App\Models\User;
 use App\Models\WeatherCondition;
@@ -21,6 +22,8 @@ use Livewire\Component;
  */
 class AdminDashboard extends Component
 {
+    use AuthorizesAdminAccess;
+
     public ?string $sysMessage = null;
 
     public string $sysMessageType = 'success';

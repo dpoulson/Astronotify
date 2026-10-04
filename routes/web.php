@@ -24,14 +24,6 @@ Route::get('/', function () {
 Route::get('/notifications/manage/{user}', ManageNotifications::class)
     ->name('notifications.manage');
 
-if (app()->environment('local', 'testing')) {
-    Route::get('/login-as-test-user', function () {
-        auth()->loginUsingId(1);
-
-        return redirect('/dashboard');
-    });
-}
-
 // Google Socialite Routes
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);

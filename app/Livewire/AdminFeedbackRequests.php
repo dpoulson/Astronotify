@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\AuthorizesAdminAccess;
 use App\Models\FeedbackSubmission;
 use App\Models\StargazingSpot;
 use Illuminate\Contracts\View\View;
@@ -18,6 +19,7 @@ use Livewire\WithPagination;
  */
 class AdminFeedbackRequests extends Component
 {
+    use AuthorizesAdminAccess;
     use WithPagination;
 
     public string $search = '';
