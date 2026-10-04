@@ -1,58 +1,133 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Astronotify 🌌
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![PHP Version](https://img.shields.io/badge/php-%5E8.3-blue.svg)](https://www.php.net/)
+[![Laravel Framework](https://img.shields.io/badge/laravel-11.x%20%2F%2013.x-red.svg)](https://laravel.com/)
+[![Livewire](https://img.shields.io/badge/livewire-3.x-pink.svg)](https://livewire.laravel.com/)
+[![Tailwind CSS](https://img.shields.io/badge/tailwind-3.x-38bdf8.svg)](https://tailwindcss.com/)
+[![Code Style: Pint](https://img.shields.io/badge/code%20style-pint-green.svg)](https://github.com/laravel/pint)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
-## About Laravel
+> Automated clear-sky stargazing alerts, International Space Station (ISS) solar and lunar transit predictions, and curated dark-sky discovery for astronomers and astrophotographers.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🔭 Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Astronotify** is a personal, open-source astrophotography and stargazing observation assistant. It continuously monitors weather conditions against customizable personal observing thresholds and accurately computes celestial passes of the International Space Station against the Sun and Moon using high-precision SGP4 orbital propagation.
 
-## Learning Laravel
+### Key Highlights
+- **ISS Solar & Lunar Transits**: Predicts upcoming transits and close conjunctions with dynamic SVG orbital chord diagrams, angular separation calculations, altitude/azimuth readouts, and 1-click Google Calendar / iCal exports.
+- **Precision Clear-Sky Alerts**: Pulls meteorological data from Open-Meteo to evaluate cloud cover, transparency, wind speed, and temperature against user-defined criteria.
+- **Overcast Suppression & Deduplication**: Prevents alert fatigue by tracking notification timestamps and suppressing transit warnings if local conditions are overcast (&ge;90% cloud cover).
+- **Curated Stargazing Spots Directory**: Over 100 verified dark-sky discovery sites worldwide featuring Bortle darkness scales, interactive Leaflet maps, and on-demand forecast hydration.
+- **Privacy by Design**: Zero third-party trackers, no invasive analytics, and immediate, irreversible account deletion with complete data removal.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Tech Stack
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **Backend Framework**: [Laravel](https://laravel.com) with [Laravel Jetstream](https://jetstream.laravel.com/) & [Livewire 3](https://livewire.laravel.com)
+- **Frontend / Styling**: Vanilla CSS & [Tailwind CSS](https://tailwindcss.com), [Alpine.js](https://alpinejs.dev), [Leaflet.js](https://leafletjs.com)
+- **Orbital Mechanics & Astrodynamics**:
+  - SGP4 orbital propagation algorithms with two-line element sets (TLEs)
+  - SunCalc solar & lunar ephemeris modeling
+  - JPL DE421 ephemeris integration
+- **Weather Services**: High-resolution meteorological data via [Open-Meteo](https://open-meteo.com)
+- **Code Quality & CI**: [Laravel Pint](https://github.com/laravel/pint), [PHPUnit](https://phpunit.de), Gitea Actions
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 🚀 Quick Start
 
+### Prerequisites
+- **PHP** &ge; 8.3 with `pdo`, `sqlite3` or `pdo_mysql`, `curl`, and `mbstring` extensions
+- **Composer** &ge; 2.2
+- **Node.js** &ge; 18 & **npm**
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone ssh://git@gitea.nas.lan.60chequersavenue.net:30009/daz/Astronotify.git
+   cd Astronotify
+   ```
+
+2. **Automated Setup**:
+   ```bash
+   composer setup
+   ```
+   *This command runs `composer install`, copies `.env.example` to `.env` if missing, generates the application key, runs database migrations, and builds frontend assets.*
+
+3. **Configure Environment (`.env`)**:
+   Verify or customize your settings:
+   ```env
+   APP_NAME="Astronotify"
+   APP_URL=http://localhost:8000
+   DB_CONNECTION=sqlite
+   # or for MySQL:
+   # DB_CONNECTION=mysql
+   # DB_HOST=127.0.0.1
+   # DB_DATABASE=astronotify
+   ```
+
+4. **Seed Stargazing Spots (Optional)**:
+   ```bash
+   php artisan db:seed
+   ```
+
+5. **Start Development Server**:
+   ```bash
+   npm run dev &
+   php artisan serve
+   ```
+   Visit `http://localhost:8000` in your browser.
+
+---
+
+## ⚙️ Background Tasks & Commands
+
+Astronotify relies on Artisan commands to sync forecast data, update orbital models, and dispatch email alerts:
+
+| Command | Frequency | Description |
+|---|---|---|
+| `php artisan weather:fetch` | Hourly / Daily | Fetches updated 7-day weather forecasts for all active locations |
+| `php artisan weather:iss-transits` | Daily | Calculates solar/lunar ISS passes for all tracked locations & spots |
+| `php artisan schedule:run` | Every minute | Native Laravel task scheduler orchestrating background jobs |
+| `php artisan queue:work` | Continuous | Processes queued notification emails and webhook alerts |
+
+Configure the host cron job to run the scheduler every minute:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+* * * * * cd /path/to/astronotify && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 🧪 Testing & Code Quality
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Astronotify includes test coverage across all features:
 
-## Code of Conduct
+```bash
+# Run unit and feature test suite
+php artisan test
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Run code style linting with Pint
+./vendor/bin/pint --test
 
-## Security Vulnerabilities
+# Automatically fix code styling issues
+./vendor/bin/pint
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Continuous integration is automated via [.gitea/workflows/lint.yaml](.gitea/workflows/lint.yaml).
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 💬 Community & Feedback
+
+- **Discord Community**: Join our [Official Discord](https://discord.gg/UuwaXjRjZU) for pass alerts, feature requests, and stargazing spot submissions.
+- **In-App Feedback**: Submit spot suggestions and bug reports directly via the feedback modal or admin portal at `/admin/requests`.
+
+---
+
+## 📄 License
+
+Astronotify is open-sourced software licensed under the [MIT License](LICENSE).
