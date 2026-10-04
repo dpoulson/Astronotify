@@ -41,4 +41,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URL', '/auth/google/callback'),
     ],
 
+    'discord' => [
+        'webhook_url' => env('DISCORD_FEEDBACK_WEBHOOK_URL', env('DISCORD_WEBHOOK_URL')),
+    ],
+
 ];

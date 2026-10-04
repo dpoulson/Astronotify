@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\FeedbackSubmission;
+use App\Models\Location;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -13,10 +15,52 @@ use Throwable;
  * Class DiscordWebhookService
  *
  * Dispatches rich structured notifications to configured Discord channels
- * via Discord Incoming Webhooks for feedback, spot submissions, and bug reports.
+ * via Discord Incoming Webhooks for user registrations, new observing locations,
+ * feedback, spot submissions, and bug reports.
  */
 class DiscordWebhookService
 {
+    /**
+     * Retrieve the configured Discord webhook URL.
+     */
+    public function getWebhookUrl(): ?string
+    {
+        return Setting::get('discord_feedback_webhook_url')
+            ?: Setting::get('discord_webhook_url')
+            ?: config('services.discord.webhook_url')
+            ?: env('DISCORD_FEEDBACK_WEBHOOK_URL')
+            ?: env('DISCORD_WEBHOOK_URL');
+    }
+
+    /**
+     * Dispatch an arbitrary payload to a Discord webhook endpoint.
+     *
+     * @param  array<string, mixed>  $payload  Discord webhook payload with embeds.
+     * @param  string|null  $webhookUrl  Target webhook URL (defaults to configured URL).
+     * @param  string  $context  Logging context.
+     * @return bool True if dispatched successfully, false otherwise.
+     */
+    public function sendPayload(array $payload, ?string $webhookUrl = null, string $context = 'Discord notification'): bool
+    {
+        $url = $webhookUrl ?: $this->getWebhookUrl();
+
+        if (empty($url)) {
+            return false;
+        }
+
+        try {
+            $response = Http::timeout(5)->post($url, $payload);
+
+            return $response->successful();
+        } catch (Throwable $e) {
+            Log::warning("Failed to dispatch {$context}", [
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
     /**
      * Send a rich embed notification to Discord for a new feedback submission.
      *
@@ -25,9 +69,7 @@ class DiscordWebhookService
      */
     public function sendFeedbackNotification(FeedbackSubmission $submission): bool
     {
-        $webhookUrl = Setting::get('discord_feedback_webhook_url')
-            ?: config('services.discord.webhook_url')
-            ?: env('DISCORD_FEEDBACK_WEBHOOK_URL');
+        $webhookUrl = $this->getWebhookUrl();
 
         if (empty($webhookUrl)) {
             return false;
@@ -134,18 +176,152 @@ class DiscordWebhookService
             ],
         ];
 
-        try {
-            $response = Http::timeout(5)->post($webhookUrl, $payload);
+        return $this->sendPayload($payload, null, "Discord webhook for feedback submission #{$submission->id}");
+    }
 
-            return $response->successful();
-        } catch (Throwable $e) {
-            Log::warning('Failed to dispatch Discord webhook for feedback submission', [
-                'submission_id' => $submission->id,
-                'error' => $e->getMessage(),
-            ]);
+    /**
+     * Send a rich embed notification to Discord when a new user registers.
+     *
+     * @param  User  $user  The newly registered user instance.
+     * @return bool True if dispatched successfully, false otherwise.
+     */
+    public function sendUserRegisteredNotification(User $user): bool
+    {
+        $name = $user->name ?: 'New User';
+        $email = $user->email ?: 'No email';
+        $registrationMethod = ! empty($user->google_id) ? '🌐 Google OAuth' : '✉️ Email & Password';
 
-            return false;
+        $fields = [
+            [
+                'name' => 'Stargazer',
+                'value' => "{$name} (`{$email}`)",
+                'inline' => true,
+            ],
+            [
+                'name' => 'User ID',
+                'value' => "#{$user->id}",
+                'inline' => true,
+            ],
+            [
+                'name' => 'Sign-up Method',
+                'value' => $registrationMethod,
+                'inline' => true,
+            ],
+            [
+                'name' => 'Total Astronomers',
+                'value' => (string) User::count(),
+                'inline' => true,
+            ],
+        ];
+
+        $payload = [
+            'username' => 'Astronotify Bot',
+            'avatar_url' => asset('images/icon-192.png'),
+            'embeds' => [
+                [
+                    'title' => '✨ New Astronomer Registered',
+                    'description' => "Welcome **{$name}** to the Astronotify community! Observation tracking and transit alerts are now active.",
+                    'color' => 0x6366F1, // Indigo
+                    'fields' => $fields,
+                    'footer' => [
+                        'text' => 'Astronotify User Dispatcher',
+                    ],
+                    'timestamp' => now()->toIso8601String(),
+                ],
+            ],
+        ];
+
+        return $this->sendPayload($payload, null, "Discord webhook for new user registration #{$user->id}");
+    }
+
+    /**
+     * Send a rich embed notification to Discord when a user creates a new observing location.
+     *
+     * @param  Location  $location  The newly created location instance.
+     * @return bool True if dispatched successfully, false otherwise.
+     */
+    public function sendLocationCreatedNotification(Location $location): bool
+    {
+        $user = $location->user ?? User::find($location->user_id);
+        $userName = $user ? $user->name : 'Unknown User';
+        $userEmail = $user ? $user->email : 'N/A';
+        $userLabel = $user ? "{$userName} (`{$userEmail}`)" : "User #{$location->user_id}";
+
+        $lat = round((float) $location->latitude, 4);
+        $lng = round((float) $location->longitude, 4);
+        $coordValue = "`{$lat}°, {$lng}°`";
+        if ($location->elevation !== null) {
+            $coordValue .= " • {$location->elevation}m elevation";
         }
+
+        $bortleDesc = $location->bortle_description ? " ({$location->bortle_description})" : '';
+        $bortleValue = $location->bortle
+            ? "Class {$location->bortle}{$bortleDesc}"
+            : 'Unspecified';
+
+        $alerts = [];
+        if ($location->notify_stargazing_alerts) {
+            $alerts[] = '✨ Stargazing Forecasts';
+        }
+        if ($location->notify_iss_sun_transit) {
+            $alerts[] = '☀️ ISS Solar Transits';
+        }
+        if ($location->notify_iss_moon_transit) {
+            $alerts[] = '🌙 ISS Lunar Transits';
+        }
+        $alertSummary = ! empty($alerts) ? implode(' • ', $alerts) : 'None';
+
+        $fields = [
+            [
+                'name' => 'Location Name',
+                'value' => "📍 **{$location->name}**",
+                'inline' => true,
+            ],
+            [
+                'name' => 'Configured By',
+                'value' => $userLabel,
+                'inline' => true,
+            ],
+            [
+                'name' => 'Sky Quality',
+                'value' => "🔭 {$bortleValue}",
+                'inline' => true,
+            ],
+            [
+                'name' => 'Coordinates',
+                'value' => $coordValue,
+                'inline' => true,
+            ],
+            [
+                'name' => 'Weather Criteria',
+                'value' => "Cloud: ≤ {$location->max_cloud_cover}% • Wind: ≤ {$location->max_wind_speed} km/h • Clear: ≥ {$location->min_clear_hours}h",
+                'inline' => false,
+            ],
+            [
+                'name' => 'Alert Preferences',
+                'value' => $alertSummary,
+                'inline' => false,
+            ],
+        ];
+
+        $payload = [
+            'username' => 'Astronotify Bot',
+            'avatar_url' => asset('images/icon-192.png'),
+            'embeds' => [
+                [
+                    'title' => "🔭 New Observing Location Added: {$location->name}",
+                    'description' => 'A new observing spot has been configured for stargazing forecasts and modeled ISS transit conjunctions.',
+                    'color' => 0x10B981, // Emerald
+                    'fields' => $fields,
+                    'footer' => [
+                        'text' => 'Astronotify Location Dispatcher',
+                    ],
+                    'timestamp' => now()->toIso8601String(),
+                ],
+            ],
+        ];
+
+        return $this->sendPayload($payload, null, "Discord webhook for new location #{$location->id} ({$location->name})");
     }
 
     /**
@@ -166,7 +342,7 @@ class DiscordWebhookService
             'embeds' => [
                 [
                     'title' => '🛰️ Discord Webhook Test Successful',
-                    'description' => 'Astronotify is connected to your Discord server! Dark sky spot suggestions, feature requests, and community feedback will broadcast to this channel in real time.',
+                    'description' => 'Astronotify is connected to your Discord server! User registrations, new observing locations, dark sky spot suggestions, and support requests will broadcast to this channel in real time.',
                     'color' => 0x8B5CF6,
                     'fields' => [
                         [
@@ -188,16 +364,6 @@ class DiscordWebhookService
             ],
         ];
 
-        try {
-            $response = Http::timeout(5)->post($webhookUrl, $payload);
-
-            return $response->successful();
-        } catch (Throwable $e) {
-            Log::warning('Discord webhook test failed', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
-        }
+        return $this->sendPayload($payload, $webhookUrl, 'Discord webhook test ping');
     }
 }

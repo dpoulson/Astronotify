@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Libs\BortleScale;
 use App\Models\Traits\ClearsAdminDashboardCache;
+use App\Services\DiscordWebhookService;
 use App\Services\ISSTransitCalculator;
 use Carbon\Carbon;
 use DateTimeInterface;
@@ -93,6 +94,20 @@ class Location extends Model
             'notify_iss_moon_transit' => 'boolean',
             'notify_stargazing_alerts' => 'boolean',
         ];
+    }
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Location $location) {
+            try {
+                app(DiscordWebhookService::class)->sendLocationCreatedNotification($location);
+            } catch (Throwable $e) {
+                Log::warning('Failed to dispatch Discord location webhook: ' . $e->getMessage());
+            }
+        });
     }
 
     /**

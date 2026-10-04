@@ -2,13 +2,17 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Console\Events\CommandStarting;
-use Illuminate\Console\Events\CommandFinished;
 use App\Models\CommandLog;
+use App\Models\User;
+use App\Services\DiscordWebhookService;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,10 +39,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Fix for MariaDB older indexing length limits on utf8mb4 configurations
-        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+        Schema::defaultStringLength(191);
 
-        \Illuminate\Support\Facades\Gate::define('admin', function (\App\Models\User $user) {
+        Gate::define('admin', function (User $user) {
             return $user->is_admin;
+        });
+
+        // Listen for new user registrations to broadcast Discord notification
+        Event::listen(Registered::class, function (Registered $event) {
+            try {
+                if ($event->user instanceof User) {
+                    app(DiscordWebhookService::class)->sendUserRegisteredNotification($event->user);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to dispatch Discord user registration webhook: ' . $e->getMessage());
+            }
         });
 
         // Log Console Commands

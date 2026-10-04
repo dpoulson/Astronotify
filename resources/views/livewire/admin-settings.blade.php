@@ -49,7 +49,7 @@
                                 </svg>
                                 <span>Discord Community &amp; Webhook Integration</span>
                             </h3>
-                            <p class="text-xs text-slate-400 mt-1">Broadcast new spot suggestions and support requests directly into your Discord staff/alerts channel.</p>
+                            <p class="text-xs text-slate-400 mt-1">Broadcast new registrations, observation locations, spot suggestions, and support requests directly into your Discord staff/alerts channel.</p>
                         </div>
                     </div>
 
