@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Livewire\AdminSettings;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -35,7 +36,7 @@ class AdminSettingsTest extends TestCase
         $user = User::factory()->create(['is_admin' => true]);
         $this->actingAs($user);
 
-        Livewire::test(\App\Livewire\AdminSettings::class)
+        Livewire::test(AdminSettings::class)
             ->set('forecast_days', 10)
             ->set('grouping_decimal_places', 2)
             ->set('conjunction_threshold', 1.25)
@@ -52,7 +53,7 @@ class AdminSettingsTest extends TestCase
         $user = User::factory()->create(['is_admin' => true]);
         $this->actingAs($user);
 
-        Livewire::test(\App\Livewire\AdminSettings::class)
+        Livewire::test(AdminSettings::class)
             ->set('forecast_days', 20) // max is 16
             ->set('grouping_decimal_places', 5) // max is 4
             ->set('conjunction_threshold', 0) // min is 0.01

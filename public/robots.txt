@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /notifications/manage/
+Disallow: /auth/
+
+Sitemap: https://astronotify.org/sitemap.xml

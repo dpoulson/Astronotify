@@ -3,9 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -71,7 +70,7 @@ class RegistrationProtectionTest extends TestCase
         $this->assertNull($user->email_verified_at);
 
         // Verification email should be sent
-        Notification::assertSentTo($user, \Illuminate\Auth\Notifications\VerifyEmail::class);
+        Notification::assertSentTo($user, VerifyEmail::class);
 
         // Accessing dashboard should redirect to verification notice
         $dashResponse = $this->actingAs($user)->get('/dashboard');

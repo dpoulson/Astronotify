@@ -25,8 +25,11 @@ class StargazingAlert extends Mailable implements ShouldQueue
     public $backoff = [30, 60, 120];
 
     public $location;
+
     public $nightLength;
+
     public $maxClear;
+
     public $optimalDate;
 
     /**

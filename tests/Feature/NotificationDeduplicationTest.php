@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\LocationManager;
 use App\Mail\ISSTransitSummary;
 use App\Mail\StargazingSummary;
 use App\Models\ISSTransit;
@@ -39,7 +40,7 @@ class NotificationDeduplicationTest extends TestCase
         // Mock Open-Meteo response
         $fakeSunset = now()->setTime(20, 0)->toIso8601String();
         $fakeSunrise = now()->addDay()->setTime(6, 0)->toIso8601String();
-        
+
         $hourlyTimes = [];
         $hourlyClouds = [];
         $hourlyWinds = [];
@@ -85,7 +86,7 @@ class NotificationDeduplicationTest extends TestCase
 
         // Mock TLE with pass over location
         Http::fake([
-            'celestrak.org/*' => Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200)
+            'celestrak.org/*' => Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200),
         ]);
 
         $user = User::factory()->create();
@@ -137,7 +138,7 @@ class NotificationDeduplicationTest extends TestCase
         Mail::fake();
 
         Http::fake([
-            'celestrak.org/*' => Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200)
+            'celestrak.org/*' => Http::response("ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901", 200),
         ]);
 
         $user = User::factory()->create();
@@ -171,7 +172,7 @@ class NotificationDeduplicationTest extends TestCase
 
         // First run: Should alert and mark notified_at
         $this->artisan('weather:iss-transits')->assertSuccessful();
-        
+
         $transits = ISSTransit::where('location_id', $location->id)->get();
         if ($transits->isNotEmpty()) {
             Mail::assertQueued(ISSTransitSummary::class, 1);
@@ -210,7 +211,7 @@ class NotificationDeduplicationTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(\App\Livewire\LocationManager::class)
+        Livewire::test(LocationManager::class)
             ->assertSee('⚠️ Cloudy (100%)')
             ->assertSee('Poor viewing: 100% cloud');
     }

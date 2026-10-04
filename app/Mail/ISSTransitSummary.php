@@ -2,12 +2,14 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class ISSTransitSummary extends Mailable implements ShouldQueue
 {
@@ -24,17 +26,19 @@ class ISSTransitSummary extends Mailable implements ShouldQueue
     public $backoff = [30, 60, 120];
 
     public $transits;
+
     public $userName;
+
     public $unsubscribeUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($transits, \App\Models\User $user)
+    public function __construct($transits, User $user)
     {
         $this->transits = $transits;
         $this->userName = $user->name;
-        $this->unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute('notifications.manage', ['user' => $user->id]);
+        $this->unsubscribeUrl = URL::signedRoute('notifications.manage', ['user' => $user->id]);
     }
 
     /**

@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Livewire\LocationManager;
 use App\Models\Location;
 use App\Models\Setting;
-use App\Models\StargazingSpot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;

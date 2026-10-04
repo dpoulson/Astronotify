@@ -1,0 +1,9 @@
+{
+    "preset": "laravel",
+    "exclude": [
+        "app/Libs/Predict"
+    ],
+    "notPath": [
+        "app/Libs/Predict.php"
+    ]
+}

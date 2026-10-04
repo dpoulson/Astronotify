@@ -105,7 +105,7 @@ class Location extends Model
             try {
                 app(DiscordWebhookService::class)->sendLocationCreatedNotification($location);
             } catch (Throwable $e) {
-                Log::warning('Failed to dispatch Discord location webhook: ' . $e->getMessage());
+                Log::warning('Failed to dispatch Discord location webhook: '.$e->getMessage());
             }
         });
     }

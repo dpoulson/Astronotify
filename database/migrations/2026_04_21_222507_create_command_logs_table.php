@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('finished_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('command');
             $table->index('status');
         });

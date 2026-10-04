@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -9,11 +10,12 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class StargazingSummary extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-    
+
     /**
      * The number of times the job may be attempted.
      */
@@ -23,19 +25,21 @@ class StargazingSummary extends Mailable implements ShouldQueue
      * The number of seconds to wait before retrying the job.
      */
     public $backoff = [30, 60, 120];
-    
+
     public $alerts;
+
     public $userName;
+
     public $unsubscribeUrl;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($alerts, \App\Models\User $user)
+    public function __construct($alerts, User $user)
     {
         $this->alerts = $alerts;
         $this->userName = $user->name;
-        $this->unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute('notifications.manage', ['user' => $user->id]);
+        $this->unsubscribeUrl = URL::signedRoute('notifications.manage', ['user' => $user->id]);
     }
 
     /**

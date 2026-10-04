@@ -2,9 +2,9 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use App\Libs\SunCalc;
 use DateTime;
+use Tests\TestCase;
 
 class SunCalcTest extends TestCase
 {

@@ -60,9 +60,9 @@
 - [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
 
 ## Workflows and other plans
-- [ ] M ** Use local gitea server, and mirror to github and gitlab (I want to move from github)
-- [ ] M ** Auto lint workflows
-- [ ] M ** Build android app and submit updates to play store
-- [ ] M ** Auto backup sql db and files to remote storage (remote.tinfoilhat.net)
-- [ ] M ** Implement proper sitemap, and submit to search engines
-- [ ] M ** Easy migrate to S3 if storage gets too big on hosting
+- [x] M **Use local gitea server, and mirror to github and gitlab** — switched `origin` to local Gitea instance with push mirroring configured to GitHub
+- [x] M **Auto lint workflows** — configured `pint.json` preset/exclusions, formatted codebase, and added Gitea Actions workflow at `.gitea/workflows/lint.yaml`
+- [ ] M **Build android app and submit updates to play store** — paused pending release signing key generation and SHA-256 fingerprint in assetlinks.json
+- [ ] M **Auto backup sql db and files to remote storage** — managed via hosting backups
+- [x] M **Implement proper sitemap, and submit to search engines** — dynamic cached `/sitemap.xml` covering core pages, 100+ curated dark-sky spots, and upcoming passes; updated robots.txt with disallows and sitemap URL
+- [x] M **Easy migrate to S3 if storage gets too big on hosting** — installed `league/flysystem-aws-s3-v3` (^3.0); s3 disk configured in `config/filesystems.php`

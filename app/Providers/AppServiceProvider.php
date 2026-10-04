@@ -22,10 +22,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Set up Predict include path and autoloader globally
-        set_include_path(get_include_path() . PATH_SEPARATOR . base_path('app/Libs'));
+        set_include_path(get_include_path().PATH_SEPARATOR.base_path('app/Libs'));
         spl_autoload_register(function ($class) {
             if (strpos($class, 'Predict') === 0) {
-                $file = base_path('app/Libs/' . str_replace('_', '/', $class) . '.php');
+                $file = base_path('app/Libs/'.str_replace('_', '/', $class).'.php');
                 if (file_exists($file)) {
                     require_once $file;
                 }
@@ -52,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
                     app(DiscordWebhookService::class)->sendUserRegisteredNotification($event->user);
                 }
             } catch (\Throwable $e) {
-                Log::warning('Failed to dispatch Discord user registration webhook: ' . $e->getMessage());
+                Log::warning('Failed to dispatch Discord user registration webhook: '.$e->getMessage());
             }
         });
 
@@ -60,10 +60,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CommandStarting::class, function (CommandStarting $event) {
             try {
                 $command = $event->command;
-                
+
                 // Exclude noise
                 $exclude = ['serve', 'migrate', 'migrate:status', 'vendor:publish', 'package:discover', 'livewire:discover', 'queue:work', 'queue:listen'];
-                if (in_array($command, $exclude) || is_null($command) || !Schema::hasTable('command_logs')) {
+                if (in_array($command, $exclude) || is_null($command) || ! Schema::hasTable('command_logs')) {
                     return;
                 }
 
@@ -74,16 +74,16 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             } catch (\Exception $e) {
                 // Silently fail to not block the command
-                Log::error('Command logging failed: ' . $e->getMessage());
+                Log::error('Command logging failed: '.$e->getMessage());
             }
         });
 
         Event::listen(CommandFinished::class, function (CommandFinished $event) {
             try {
                 $command = $event->command;
-                
+
                 $exclude = ['serve', 'migrate', 'migrate:status', 'vendor:publish', 'package:discover', 'livewire:discover', 'queue:work', 'queue:listen'];
-                if (in_array($command, $exclude) || is_null($command) || !Schema::hasTable('command_logs')) {
+                if (in_array($command, $exclude) || is_null($command) || ! Schema::hasTable('command_logs')) {
                     return;
                 }
 
@@ -96,7 +96,7 @@ class AppServiceProvider extends ServiceProvider
                 if ($log) {
                     $finishedAt = now();
                     $duration = $log->started_at->diffInMilliseconds($finishedAt);
-                    
+
                     $log->update([
                         'status' => $event->exitCode === 0 ? 'success' : 'failed',
                         'exit_code' => $event->exitCode,
@@ -106,7 +106,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             } catch (\Exception $e) {
                 // Silently fail
-                Log::error('Command logging (finished) failed: ' . $e->getMessage());
+                Log::error('Command logging (finished) failed: '.$e->getMessage());
             }
         });
     }

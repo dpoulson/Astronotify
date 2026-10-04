@@ -2,18 +2,19 @@
 
 namespace App\Mail;
 
+use App\Models\Location;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Location;
 
 class LocationTestMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $location;
+
     public $userName;
 
     public function __construct(Location $location, $userName)

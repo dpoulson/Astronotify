@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\AdminStargazingSpots;
 use App\Models\StargazingSpot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,7 +33,7 @@ class AdminStargazingSpotsTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
         $this->actingAs($admin);
 
-        Livewire::test(\App\Livewire\AdminStargazingSpots::class)
+        Livewire::test(AdminStargazingSpots::class)
             ->set('name', 'Elan Valley Dark Sky Park')
             ->set('country', 'United Kingdom')
             ->set('region', 'Mid Wales')
@@ -69,7 +70,7 @@ class AdminStargazingSpotsTest extends TestCase
             'is_active' => true,
         ]);
 
-        Livewire::test(\App\Livewire\AdminStargazingSpots::class)
+        Livewire::test(AdminStargazingSpots::class)
             ->call('editSpot', $spot->id)
             ->set('name', 'Updated Spot Name')
             ->call('save')
@@ -80,7 +81,7 @@ class AdminStargazingSpotsTest extends TestCase
             'name' => 'Updated Spot Name',
         ]);
 
-        Livewire::test(\App\Livewire\AdminStargazingSpots::class)
+        Livewire::test(AdminStargazingSpots::class)
             ->call('toggleActive', $spot->id);
 
         $this->assertFalse($spot->fresh()->is_active);
@@ -102,7 +103,7 @@ class AdminStargazingSpotsTest extends TestCase
             'is_active' => true,
         ]);
 
-        Livewire::test(\App\Livewire\AdminStargazingSpots::class)
+        Livewire::test(AdminStargazingSpots::class)
             ->call('deleteSpot', $spot->id);
 
         $this->assertDatabaseMissing('stargazing_spots', [

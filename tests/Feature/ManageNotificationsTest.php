@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Livewire\ManageNotifications;
 use App\Models\Location;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
@@ -54,7 +55,7 @@ class ManageNotificationsTest extends TestCase
         $user->load('locations');
 
         Livewire::withQueryParams($queryParams)
-            ->test(\App\Livewire\ManageNotifications::class, ['user' => $user])
+            ->test(ManageNotifications::class, ['user' => $user])
             ->set("preferences.{$location->id}.notify_stargazing_alerts", false)
             ->set("preferences.{$location->id}.notify_iss_sun_transit", false)
             ->set("preferences.{$location->id}.notify_iss_moon_transit", false)

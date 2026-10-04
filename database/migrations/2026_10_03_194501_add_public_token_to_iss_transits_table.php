@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 return new class extends Migration
@@ -17,7 +17,7 @@ return new class extends Migration
         $transits = DB::table('iss_transits')->whereNull('public_token')->get(['id']);
         foreach ($transits as $t) {
             DB::table('iss_transits')->where('id', $t->id)->update([
-                'public_token' => Str::random(16)
+                'public_token' => Str::random(16),
             ]);
         }
     }
