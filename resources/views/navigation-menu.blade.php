@@ -57,6 +57,14 @@
                                         {{ __('Manage Spots') }}
                                     </x-dropdown-link>
 
+                                    <x-dropdown-link href="{{ route('admin.requests') }}" class="flex items-center justify-between">
+                                        <span>{{ __('Feedback & Requests') }}</span>
+                                        @php $pendingCount = \App\Models\FeedbackSubmission::pending()->count(); @endphp
+                                        @if($pendingCount > 0)
+                                            <span class="px-1.5 py-0.5 text-[10px] font-black rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300">{{ $pendingCount }}</span>
+                                        @endif
+                                    </x-dropdown-link>
+
                                     <x-dropdown-link href="{{ route('admin.users') }}">
                                         {{ __('Users') }}
                                     </x-dropdown-link>
@@ -240,6 +248,9 @@
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="{{ route('admin.spots') }}" :active="request()->routeIs('admin.spots')">
                             {{ __('Manage Spots') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.requests') }}" :active="request()->routeIs('admin.requests')">
+                            {{ __('Feedback & Requests') }}
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="{{ route('admin.users') }}" :active="request()->routeIs('admin.users')">
                             {{ __('Users') }}

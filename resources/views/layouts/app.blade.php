@@ -58,6 +58,8 @@
 
         @stack('modals')
 
+        <livewire:feedback-modal />
+
         @livewireScripts
     </body>
 </html>

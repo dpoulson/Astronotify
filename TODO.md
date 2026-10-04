@@ -55,6 +55,14 @@
 - [x] H **Public Transit Pass Permalinks (`/transit/{public_token}`)** — dedicated shareable pass pages with celestial orbital chord diagrams, telemetry, 1-click Google Calendar / iCal exports, and OpenGraph social preview cards
 - [x] M **Interactive Stargazing Spots Map** — display all curated spots on an interactive dark-sky map (Leaflet) with Bortle scale color-coding, proximity geolocation finder, and popup forecast summaries
 - [ ] M **Embeddable Club Widget (`<script>` / `<iframe>`)** — lightweight embeddable widget for local astronomical societies displaying tonight's viewing index and next ISS transit with backlink to Astronotify
+- [x] H **Community Support & Feedback System with Discord Integration** — in-app modal for dark-sky spot suggestions, feature requests, and bug reports; real-time Discord webhook embed alerts; official Discord community links (https://discord.gg/UuwaXjRjZU) with role verification onboarding notices; dedicated admin queue at `/admin/requests` with 1-click spot promotion
 - [ ] M **Astronomy Society Discord / Matrix / Telegram Webhooks** — automated bot dispatcher to broadcast daily viewing conditions and transit alerts directly into club chats
 - [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
 
+## Workflows and other plans
+- [ ] M ** Use local gitea server, and mirror to github and gitlab (I want to move from github)
+- [ ] M ** Auto lint workflows
+- [ ] M ** Build android app and submit updates to play store
+- [ ] M ** Auto backup sql db and files to remote storage (remote.tinfoilhat.net)
+- [ ] M ** Implement proper sitemap, and submit to search engines
+- [ ] M ** Easy migrate to S3 if storage gets too big on hosting

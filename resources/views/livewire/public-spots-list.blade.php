@@ -232,6 +232,18 @@
                             <span>Global Map</span>
                         </button>
                     </div>
+
+                    <!-- Suggest Spot Action -->
+                    <button 
+                        type="button" 
+                        @click="window.Livewire ? Livewire.dispatch('open-feedback-modal', { type: 'spot_suggestion' }) : window.dispatchEvent(new CustomEvent('open-feedback-modal', { detail: { type: 'spot_suggestion' } }))"
+                        onclick="window.Livewire ? Livewire.dispatch('open-feedback-modal', { type: 'spot_suggestion' }) : window.dispatchEvent(new CustomEvent('open-feedback-modal', { detail: { type: 'spot_suggestion' } }))"
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition cursor-pointer"
+                        title="Suggest a new dark sky spot for our global directory"
+                    >
+                        <span>🔭</span>
+                        <span>Suggest a Spot</span>
+                    </button>
                 </div>
             </div>
 
@@ -489,15 +501,21 @@
                     Astronotify maintains a global directory of accessible stargazing locations, public observatories, and designated dark-sky parks. You can also save any custom coordinates to your personal account for automated alerts.
                 </p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-                <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm shadow-xl transition active:scale-95">
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <button 
+                    type="button" 
+                    @click="window.Livewire ? Livewire.dispatch('open-feedback-modal', { type: 'spot_suggestion' }) : window.dispatchEvent(new CustomEvent('open-feedback-modal', { detail: { type: 'spot_suggestion' } }))"
+                    onclick="window.Livewire ? Livewire.dispatch('open-feedback-modal', { type: 'spot_suggestion' }) : window.dispatchEvent(new CustomEvent('open-feedback-modal', { detail: { type: 'spot_suggestion' } }))"
+                    class="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-xl transition active:scale-95 cursor-pointer"
+                >
+                    🔭 Suggest a Spot
+                </button>
+                <a href="{{ route('register') }}" class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 shadow-xl transition active:scale-95">
                     Create Free Account
                 </a>
             </div>
         </div>
     </div>
-
-    @include('components.footer')
 </div>
 
 @push('scripts')

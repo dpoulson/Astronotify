@@ -71,6 +71,10 @@ Route::middleware([
         ->middleware('can:admin')
         ->name('admin.spots');
 
+    Route::get('/admin/requests', \App\Livewire\AdminFeedbackRequests::class)
+        ->middleware('can:admin')
+        ->name('admin.requests');
+
     Route::get('/admin/users/{user}', \App\Livewire\AdminUserView::class)
         ->middleware('can:admin')
         ->name('admin.user.view');

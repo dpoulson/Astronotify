@@ -40,6 +40,8 @@
         </div>
         <x-footer />
 
+        <livewire:feedback-modal />
+
         @livewireScripts
         @stack('scripts')
     </body>

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Setting;
+use App\Services\DiscordWebhookService;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -36,6 +37,16 @@ class AdminSettings extends Component
     public $conjunction_threshold = 0.75;
 
     /**
+     * Discord Webhook URL for real-time community feedback and spot notifications.
+     */
+    public string $discord_feedback_webhook_url = '';
+
+    /**
+     * Public Discord server invite URL.
+     */
+    public string $discord_invite_url = 'https://discord.gg/UuwaXjRjZU';
+
+    /**
      * Initialize component properties from database settings.
      */
     public function mount(): void
@@ -43,6 +54,8 @@ class AdminSettings extends Component
         $this->forecast_days = (int) Setting::get('forecast_days', 7);
         $this->grouping_decimal_places = (int) Setting::get('grouping_decimal_places', 1);
         $this->conjunction_threshold = (float) Setting::get('conjunction_threshold', 0.75);
+        $this->discord_feedback_webhook_url = (string) Setting::get('discord_feedback_webhook_url', '');
+        $this->discord_invite_url = (string) Setting::get('discord_invite_url', 'https://discord.gg/UuwaXjRjZU');
     }
 
     /**
@@ -54,13 +67,35 @@ class AdminSettings extends Component
             'forecast_days' => 'required|integer|min:1|max:16',
             'grouping_decimal_places' => 'required|integer|min:0|max:4',
             'conjunction_threshold' => 'required|numeric|min:0.01|max:5.0',
+            'discord_feedback_webhook_url' => 'nullable|url|max:255',
+            'discord_invite_url' => 'required|url|max:255',
         ]);
 
         Setting::set('forecast_days', $this->forecast_days);
         Setting::set('grouping_decimal_places', $this->grouping_decimal_places);
         Setting::set('conjunction_threshold', $this->conjunction_threshold);
+        Setting::set('discord_feedback_webhook_url', $this->discord_feedback_webhook_url);
+        Setting::set('discord_invite_url', $this->discord_invite_url);
 
         session()->flash('message', 'Global settings successfully updated.');
+    }
+
+    /**
+     * Send a test ping to the configured Discord webhook.
+     */
+    public function testDiscordWebhook(DiscordWebhookService $service): void
+    {
+        $this->validate([
+            'discord_feedback_webhook_url' => 'required|url',
+        ]);
+
+        $success = $service->sendTestNotification($this->discord_feedback_webhook_url);
+
+        if ($success) {
+            session()->flash('webhook_message', 'Discord test notification successfully delivered!');
+        } else {
+            session()->flash('webhook_error', 'Failed to reach Discord. Please check the webhook URL.');
+        }
     }
 
     /**

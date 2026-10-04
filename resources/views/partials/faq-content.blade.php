@@ -78,6 +78,15 @@
             <span>🛡️</span>
             <span>Privacy &amp; Data Control</span>
         </button>
+        <button
+            type="button"
+            @click="activeTab = 'community'"
+            :class="activeTab === 'community' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2"
+        >
+            <span>💬</span>
+            <span>Discord &amp; Support</span>
+        </button>
     </div>
 
     <!-- TAB 1: ISS Transits & Geometry -->
@@ -318,6 +327,77 @@
                 <a href="{{ route('privacy') }}" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transition-all shrink-0">
                     Read Privacy Policy &rarr;
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 6: Discord & Community Support -->
+    <div x-show="activeTab === 'community'" class="space-y-6">
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-6">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="text-indigo-400">💬</span>
+                    <span>Astronotify Community &amp; Direct Support</span>
+                </h3>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">
+                    Connect with fellow astronomy enthusiasts, request new stargazing spots, submit bug reports, or talk with the creators.
+                </p>
+            </div>
+
+            <!-- Discord Server Callout Card -->
+            <div class="p-6 rounded-2xl bg-indigo-950/50 border border-indigo-500/40 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-600/40 border border-indigo-500/50 flex items-center justify-center text-indigo-300 shrink-0">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-black text-white">Join the Official Discord Server</h4>
+                            <p class="text-xs text-indigo-200">Real-time chats, astrophotography showcase, and feature voting.</p>
+                        </div>
+                    </div>
+
+                    <a 
+                        href="https://discord.gg/UuwaXjRjZU" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 shrink-0"
+                    >
+                        <span>Join Server</span>
+                        <span>↗</span>
+                    </a>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-xs text-amber-200 flex items-start gap-2.5">
+                    <span class="text-base">⚠️</span>
+                    <div>
+                        <strong class="font-bold text-white block">Discord Role Verification Required:</strong>
+                        <span>To prevent spam and keep the server safe, our Discord server requires users to select a role upon joining. Inactive accounts without a selected role are automatically kicked.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-App Feedback Form Launcher -->
+            <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                        <span>🔭</span>
+                        <span>Know a great dark-sky location? Suggest a Spot</span>
+                    </h4>
+                    <p class="text-xs text-slate-400">
+                        Suggest Dark Sky Parks, nature reserves, or observatory viewpoints to add to our global curated directory.
+                    </p>
+                </div>
+
+                <button 
+                    type="button" 
+                    @click="$dispatch('open-feedback-modal', { type: 'spot_suggestion' })" 
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition shrink-0"
+                >
+                    Submit Spot Suggestion
+                </button>
             </div>
         </div>
     </div>

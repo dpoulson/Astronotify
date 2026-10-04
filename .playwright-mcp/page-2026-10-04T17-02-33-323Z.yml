@@ -1,0 +1,481 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000
+        - generic [ref=e8]: /
+        - generic [ref=e9]: Stargazing Spots
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: Curated Global Directory
+          - heading "Top Stargazing Spots & Dark Sky Parks" [level=1] [ref=e14]
+          - paragraph [ref=e15]:
+            - text: Explore
+            - strong [ref=e16]: 100 premier observing locations
+            - text: across the United Kingdom, Europe, North America, and Canada. Browse the directory or switch to the interactive global map to discover dark-sky reserves near you.
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: "100"
+            - text: Total Spots
+          - generic [ref=e20]:
+            - generic [ref=e21]: "17"
+            - text: Bortle 1 True Dark
+          - generic [ref=e22]:
+            - generic [ref=e23]: "52"
+            - text: Bortle 2 Pristine
+      - generic [ref=e24]:
+        - textbox "Search by spot name, region, or park..." [ref=e26]
+        - generic [ref=e27]:
+          - combobox [ref=e28] [cursor=pointer]:
+            - option "All Countries (Worldwide)" [selected]
+            - option "Australia"
+            - option "Canada"
+            - option "Chile"
+            - option "Denmark"
+            - option "France"
+            - option "Germany"
+            - option "Hungary"
+            - option "Ireland"
+            - option "Italy"
+            - option "Namibia"
+            - option "Netherlands"
+            - option "New Zealand"
+            - option "Poland & Czech Republic"
+            - option "Portugal"
+            - option "Slovakia"
+            - option "Slovenia"
+            - option "Spain"
+            - option "United Kingdom"
+            - option "United States"
+          - combobox [ref=e29] [cursor=pointer]:
+            - option "All Light Levels" [selected]
+            - option "Bortle 1 Only (Exceptional)"
+            - option "Bortle ≤ 2 (Truly Dark)"
+            - option "Bortle ≤ 3 (Rural Sky)"
+          - button "📍 Find Near Me" [ref=e31] [cursor=pointer]:
+            - generic [ref=e32]: 📍
+            - generic [ref=e33]: Find Near Me
+          - generic [ref=e34]:
+            - button "Grid" [ref=e35] [cursor=pointer]
+            - button "Global Map" [ref=e42] [cursor=pointer]
+          - button "🔭 Suggest a Spot" [ref=e47] [cursor=pointer]:
+            - generic [ref=e48]: 🔭
+            - generic [ref=e49]: Suggest a Spot
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e56]:
+                  - generic [ref=e57]: 📍
+                  - generic [ref=e58]: New South Wales, Australia
+                - generic [ref=e59]: Bortle 1
+              - heading [level=2] [ref=e60]:
+                - link "Warrumbungle National Park" [ref=e61] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/warrumbungle-national-park
+              - generic [ref=e62]: ★ First International Dark Sky Park in Australia
+              - paragraph [ref=e64]: Extinct volcanic peaks adjacent to Siding Spring Observatory, offering crystal-clear vistas of the Galactic Core overhead.
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - text: "-31.283°, 149°"
+                - generic [ref=e67]: 800m altitude
+              - generic [ref=e68]:
+                - button "🗺️ Map" [ref=e69] [cursor=pointer]:
+                  - generic [ref=e70]: 🗺️
+                  - generic [ref=e71]: Map
+                - link "Forecast & ISS →" [ref=e72] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/warrumbungle-national-park
+                  - generic [ref=e73]: Forecast & ISS
+                  - generic [ref=e74]: →
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - generic [ref=e78]:
+                  - generic [ref=e79]: 📍
+                  - generic [ref=e80]: Saskatchewan, Canada
+                - generic [ref=e81]: Bortle 1
+              - heading [level=2] [ref=e82]:
+                - link "Grasslands National Park" [ref=e83] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/grasslands-national-park
+              - generic [ref=e84]: ★ Darkest Dark-Sky Preserve in Canada
+              - paragraph [ref=e86]: Canada's darkest Dark-Sky Preserve, protecting mixed-grass prairie and badlands where the Milky Way casts visible shadows.
+            - generic [ref=e87]:
+              - generic [ref=e88]:
+                - text: 49.2°, -107.5°
+                - generic [ref=e89]: 800m altitude
+              - generic [ref=e90]:
+                - button "🗺️ Map" [ref=e91] [cursor=pointer]:
+                  - generic [ref=e92]: 🗺️
+                  - generic [ref=e93]: Map
+                - link "Forecast & ISS →" [ref=e94] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/grasslands-national-park
+                  - generic [ref=e95]: Forecast & ISS
+                  - generic [ref=e96]: →
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - generic [ref=e100]:
+                  - generic [ref=e101]: 📍
+                  - generic [ref=e102]: Alberta & Northwest Territories, Canada
+                - generic [ref=e103]: Bortle 1
+              - heading [level=2] [ref=e104]:
+                - link "Wood Buffalo National Park" [ref=e105] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/wood-buffalo-national-park
+              - generic [ref=e106]: ★ World's Largest Dark-Sky Preserve (44,807 km²)
+              - paragraph [ref=e108]: Larger than the country of Switzerland, an immense boreal forest and salt plains preserve with breathtaking aurora activity.
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - text: 59.383°, -112.983°
+                - generic [ref=e111]: 200m altitude
+              - generic [ref=e112]:
+                - button "🗺️ Map" [ref=e113] [cursor=pointer]:
+                  - generic [ref=e114]: 🗺️
+                  - generic [ref=e115]: Map
+                - link "Forecast & ISS →" [ref=e116] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/wood-buffalo-national-park
+                  - generic [ref=e117]: Forecast & ISS
+                  - generic [ref=e118]: →
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - generic [ref=e123]: 📍
+                  - generic [ref=e124]: Antofagasta, Chile
+                - generic [ref=e125]: Bortle 1
+              - heading [level=2] [ref=e126]:
+                - link "Atacama Desert (San Pedro de Atacama)" [ref=e127] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/atacama-desert-chile
+              - generic [ref=e128]: ★ World Astronomical Capital
+              - paragraph [ref=e130]: The driest non-polar desert on Earth with over 330 cloudless nights per year, home to ALMA and Paranal VLT.
+            - generic [ref=e131]:
+              - generic [ref=e132]:
+                - text: "-22.909°, -68.2°"
+                - generic [ref=e133]: 2400m altitude
+              - generic [ref=e134]:
+                - button "🗺️ Map" [ref=e135] [cursor=pointer]:
+                  - generic [ref=e136]: 🗺️
+                  - generic [ref=e137]: Map
+                - link "Forecast & ISS →" [ref=e138] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/atacama-desert-chile
+                  - generic [ref=e139]: Forecast & ISS
+                  - generic [ref=e140]: →
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - generic [ref=e145]: 📍
+                  - generic [ref=e146]: County Kerry, Ireland
+                - generic [ref=e147]: Bortle 1
+              - heading [level=2] [ref=e148]:
+                - link "Kerry International Dark Sky Reserve" [ref=e149] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/kerry-dark-sky-reserve
+              - generic [ref=e150]: ★ IDA Gold Tier Dark Sky Reserve
+              - paragraph [ref=e152]: Bounded by the Atlantic Ocean and the Iveragh Peninsula mountains, this is the only Gold Tier Reserve in the Northern Hemisphere outside parks.
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - text: 51.85°, -10.15°
+                - generic [ref=e155]: 120m altitude
+              - generic [ref=e156]:
+                - button "🗺️ Map" [ref=e157] [cursor=pointer]:
+                  - generic [ref=e158]: 🗺️
+                  - generic [ref=e159]: Map
+                - link "Forecast & ISS →" [ref=e160] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/kerry-dark-sky-reserve
+                  - generic [ref=e161]: Forecast & ISS
+                  - generic [ref=e162]: →
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - generic [ref=e167]: 📍
+                  - generic [ref=e168]: Hardap, Namibia
+                - generic [ref=e169]: Bortle 1
+              - heading [level=2] [ref=e170]:
+                - link "NamibRand Nature Reserve" [ref=e171] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/namibrand-nature-reserve
+              - generic [ref=e172]: ★ IDA Gold Tier Dark Sky Reserve
+              - paragraph [ref=e174]: Over 200,000 hectares of Namib desert sand dunes, recognized as having the darkest measured night skies on the African continent.
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - text: "-24.967°, 15.967°"
+                - generic [ref=e177]: 980m altitude
+              - generic [ref=e178]:
+                - button "🗺️ Map" [ref=e179] [cursor=pointer]:
+                  - generic [ref=e180]: 🗺️
+                  - generic [ref=e181]: Map
+                - link "Forecast & ISS →" [ref=e182] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/namibrand-nature-reserve
+                  - generic [ref=e183]: Forecast & ISS
+                  - generic [ref=e184]: →
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - generic [ref=e187]:
+                - generic [ref=e188]:
+                  - generic [ref=e189]: 📍
+                  - generic [ref=e190]: Canterbury (South Island), New Zealand
+                - generic [ref=e191]: Bortle 1
+              - heading [level=2] [ref=e192]:
+                - link "Aoraki Mackenzie Dark Sky Reserve" [ref=e193] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/aoraki-mackenzie-reserve
+              - generic [ref=e194]: ★ IDA Gold Tier Dark Sky Reserve
+              - paragraph [ref=e196]: Largest dark sky reserve in the Southern Hemisphere, offering breathtaking views of the Magellanic Clouds and the Southern Cross.
+            - generic [ref=e197]:
+              - generic [ref=e198]:
+                - text: "-43.983°, 170.45°"
+                - generic [ref=e199]: 700m altitude
+              - generic [ref=e200]:
+                - button "🗺️ Map" [ref=e201] [cursor=pointer]:
+                  - generic [ref=e202]: 🗺️
+                  - generic [ref=e203]: Map
+                - link "Forecast & ISS →" [ref=e204] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/aoraki-mackenzie-reserve
+                  - generic [ref=e205]: Forecast & ISS
+                  - generic [ref=e206]: →
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - generic [ref=e211]: 📍
+                  - generic [ref=e212]: Canary Islands (La Palma), Spain
+                - generic [ref=e213]: Bortle 1
+              - heading [level=2] [ref=e214]:
+                - link "Roque de los Muchachos (La Palma)" [ref=e215] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/roque-de-los-muchachos
+              - generic [ref=e216]: ★ World Starlight Reserve
+              - paragraph [ref=e218]: Protected by the pioneering Spanish Sky Law since 1988, hosting Europe's flagship astronomical research telescopes with Bortle 1 clarity.
+            - generic [ref=e219]:
+              - generic [ref=e220]:
+                - text: 28.757°, -17.882°
+                - generic [ref=e221]: 2426m altitude
+              - generic [ref=e222]:
+                - button "🗺️ Map" [ref=e223] [cursor=pointer]:
+                  - generic [ref=e224]: 🗺️
+                  - generic [ref=e225]: Map
+                - link "Forecast & ISS →" [ref=e226] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/roque-de-los-muchachos
+                  - generic [ref=e227]: Forecast & ISS
+                  - generic [ref=e228]: →
+          - generic [ref=e229]:
+            - generic [ref=e230]:
+              - generic [ref=e231]:
+                - generic [ref=e232]:
+                  - generic [ref=e233]: 📍
+                  - generic [ref=e234]: Canary Islands (Tenerife), Spain
+                - generic [ref=e235]: Bortle 1
+              - heading [level=2] [ref=e236]:
+                - link "Teide Observatory & National Park" [ref=e237] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/teide-observatory-tenerife
+              - generic [ref=e238]: ★ Starlight Tourist Destination & Reserve
+              - paragraph [ref=e240]: One of the world's top three observing sites. Located inside the crater caldera above the Atlantic temperature inversion layer.
+            - generic [ref=e241]:
+              - generic [ref=e242]:
+                - text: 28.3°, -16.51°
+                - generic [ref=e243]: 2390m altitude
+              - generic [ref=e244]:
+                - button "🗺️ Map" [ref=e245] [cursor=pointer]:
+                  - generic [ref=e246]: 🗺️
+                  - generic [ref=e247]: Map
+                - link "Forecast & ISS →" [ref=e248] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/teide-observatory-tenerife
+                  - generic [ref=e249]: Forecast & ISS
+                  - generic [ref=e250]: →
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e253]:
+                - generic [ref=e254]:
+                  - generic [ref=e255]: 📍
+                  - generic [ref=e256]: Highlands, Scotland, United Kingdom
+                - generic [ref=e257]: Bortle 1
+              - heading [level=2] [ref=e258]:
+                - link "Glen Affric" [ref=e259] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/glen-affric
+              - generic [ref=e260]: ★ Caledonian Dark Sky Wilderness
+              - paragraph [ref=e262]: Often described as Scotland's most beautiful glen, surrounded by ancient Caledonian pines under untamed Bortle 1 skies.
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - text: 57.267°, -4.95°
+                - generic [ref=e265]: 260m altitude
+              - generic [ref=e266]:
+                - button "🗺️ Map" [ref=e267] [cursor=pointer]:
+                  - generic [ref=e268]: 🗺️
+                  - generic [ref=e269]: Map
+                - link "Forecast & ISS →" [ref=e270] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/glen-affric
+                  - generic [ref=e271]: Forecast & ISS
+                  - generic [ref=e272]: →
+          - generic [ref=e273]:
+            - generic [ref=e274]:
+              - generic [ref=e275]:
+                - generic [ref=e276]:
+                  - generic [ref=e277]: 📍
+                  - generic [ref=e278]: Inner Hebrides, Scotland, United Kingdom
+                - generic [ref=e279]: Bortle 1
+              - heading [level=2] [ref=e280]:
+                - link "Isle of Coll" [ref=e281] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/isle-of-coll
+              - generic [ref=e282]: ★ IDA Dark Sky Island
+              - paragraph [ref=e284]: One of the darkest inhabited islands in Europe, surrounded by the Atlantic Ocean with zero light pollution and Bortle 1 skies.
+            - generic [ref=e285]:
+              - generic [ref=e286]:
+                - text: 56.633°, -6.55°
+                - generic [ref=e287]: 40m altitude
+              - generic [ref=e288]:
+                - button "🗺️ Map" [ref=e289] [cursor=pointer]:
+                  - generic [ref=e290]: 🗺️
+                  - generic [ref=e291]: Map
+                - link "Forecast & ISS →" [ref=e292] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/isle-of-coll
+                  - generic [ref=e293]: Forecast & ISS
+                  - generic [ref=e294]: →
+          - generic [ref=e295]:
+            - generic [ref=e296]:
+              - generic [ref=e297]:
+                - generic [ref=e298]:
+                  - generic [ref=e299]: 📍
+                  - generic [ref=e300]: Texas, United States
+                - generic [ref=e301]: Bortle 1
+              - heading [level=2] [ref=e302]:
+                - link "Big Bend National Park" [ref=e303] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/big-bend-national-park
+              - generic [ref=e304]: ★ IDA International Dark Sky Park (Gold Tier)
+              - paragraph [ref=e306]: Has the lowest measure of light pollution of any National Park in the lower 48 states, offering Bortle 1 skies along the Rio Grande.
+            - generic [ref=e307]:
+              - generic [ref=e308]:
+                - text: 29.25°, -103.25°
+                - generic [ref=e309]: 850m altitude
+              - generic [ref=e310]:
+                - button "🗺️ Map" [ref=e311] [cursor=pointer]:
+                  - generic [ref=e312]: 🗺️
+                  - generic [ref=e313]: Map
+                - link "Forecast & ISS →" [ref=e314] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8000/spots/big-bend-national-park
+                  - generic [ref=e315]: Forecast & ISS
+                  - generic [ref=e316]: →
+        - navigation "Pagination Navigation" [ref=e319]:
+          - generic [ref=e320]:
+            - paragraph [ref=e322]: Showing 1 to 12 of 100 results
+            - generic [ref=e324]:
+              - generic "&laquo; Previous" [ref=e326]
+              - generic [ref=e330]: "1"
+              - button "Go to page 2" [ref=e334] [cursor=pointer]: "2"
+              - button "Go to page 3" [ref=e336] [cursor=pointer]: "3"
+              - button "Go to page 4" [ref=e338] [cursor=pointer]: "4"
+              - button "Go to page 5" [ref=e340] [cursor=pointer]: "5"
+              - button "Go to page 6" [ref=e342] [cursor=pointer]: "6"
+              - button "Go to page 7" [ref=e344] [cursor=pointer]: "7"
+              - button "Go to page 8" [ref=e346] [cursor=pointer]: "8"
+              - button "Go to page 9" [ref=e348] [cursor=pointer]: "9"
+              - button "Next &raquo;" [ref=e350] [cursor=pointer]
+      - generic [ref=e353]:
+        - generic [ref=e354]:
+          - heading "Know a dark-sky spot that should be listed?" [level=3] [ref=e355]
+          - paragraph [ref=e356]: Astronotify maintains a global directory of accessible stargazing locations, public observatories, and designated dark-sky parks. You can also save any custom coordinates to your personal account for automated alerts.
+        - link "Create Free Account" [ref=e358] [cursor=pointer]:
+          - /url: http://127.0.0.1:8000/register
+  - contentinfo [ref=e359]:
+    - generic [ref=e360]:
+      - generic [ref=e361]:
+        - generic [ref=e362]: © 2026 AstroNotify.
+        - generic [ref=e363]:
+          - text: A project by
+          - link "We Make Things" [ref=e364] [cursor=pointer]:
+            - /url: https://we-make-things.co.uk/
+          - text: .
+        - generic [ref=e365]: •
+        - generic [ref=e366]:
+          - link "About" [ref=e367] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/about
+          - generic [ref=e368]: •
+          - link "Help & FAQ" [ref=e369] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/faq
+          - generic [ref=e370]: •
+          - link "Privacy" [ref=e371] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/privacy
+          - generic [ref=e372]: •
+          - button "Feedback & Spot Requests" [active] [ref=e373] [cursor=pointer]
+      - generic [ref=e374]:
+        - link "Discord" [ref=e375] [cursor=pointer]:
+          - /url: https://discord.gg/UuwaXjRjZU
+        - button "Donate" [ref=e380] [cursor=pointer]
+  - dialog [ref=e384]:
+    - generic [ref=e386]:
+      - button "Close" [ref=e387] [cursor=pointer]
+      - generic [ref=e390]:
+        - generic [ref=e391]:
+          - generic [ref=e392]: 🛰️
+          - generic [ref=e393]: Community & Support Hub
+        - heading "Feedback & Spot Requests" [level=2] [ref=e394]
+        - paragraph [ref=e395]: Suggest new dark-sky observation locations, propose feature enhancements, or report bugs.
+      - generic [ref=e396]:
+        - generic [ref=e401]:
+          - paragraph [ref=e402]: Have a quick question or live discussion?
+          - paragraph [ref=e403]: Join our Discord community (Select a role upon joining to unlock channels)
+        - link "Join Discord ↗" [ref=e404] [cursor=pointer]:
+          - /url: https://discord.gg/UuwaXjRjZU
+          - generic [ref=e405]: Join Discord
+          - generic [ref=e406]: ↗
+      - generic [ref=e407]:
+        - button "🔭 Suggest Spot" [ref=e408] [cursor=pointer]:
+          - generic [ref=e409]: 🔭
+          - generic [ref=e410]: Suggest Spot
+        - button "💡 Feature" [ref=e411] [cursor=pointer]:
+          - generic [ref=e412]: 💡
+          - generic [ref=e413]: Feature
+        - button "🐛 Bug Report" [ref=e414] [cursor=pointer]:
+          - generic [ref=e415]: 🐛
+          - generic [ref=e416]: Bug Report
+        - button "📬 General" [ref=e417] [cursor=pointer]:
+          - generic [ref=e418]: 📬
+          - generic [ref=e419]: General
+      - generic [ref=e420]:
+        - generic [ref=e421]:
+          - generic [ref=e422]:
+            - generic [ref=e423]: Your Name *
+            - textbox "Jane Doe" [ref=e424]
+          - generic [ref=e425]:
+            - generic [ref=e426]: Email Address *
+            - textbox "jane@example.com" [ref=e427]
+        - generic [ref=e428]:
+          - generic [ref=e429]: Stargazing Spot Name *
+          - textbox "e.g., Kielder Forest Sky Park or Pic du Midi" [ref=e430]
+        - generic [ref=e431]:
+          - heading "📍 Geographic & Dark Sky Specifications" [level=4] [ref=e432]:
+            - generic [ref=e433]: 📍
+            - generic [ref=e434]: Geographic & Dark Sky Specifications
+          - generic [ref=e435]:
+            - generic [ref=e436]:
+              - generic [ref=e437]: Country *
+              - textbox "United Kingdom, Spain, USA..." [ref=e438]
+            - generic [ref=e439]:
+              - generic [ref=e440]: Region / Province / County
+              - textbox "Northumberland, Andalusia, Utah..." [ref=e441]
+          - generic [ref=e442]:
+            - generic [ref=e443]:
+              - generic [ref=e444]: Latitude (°)
+              - spinbutton "e.g. 55.2333" [ref=e445]
+            - generic [ref=e446]:
+              - generic [ref=e447]: Longitude (°)
+              - spinbutton "e.g. -2.5833" [ref=e448]
+            - generic [ref=e449]:
+              - generic [ref=e450]: Elevation (meters)
+              - spinbutton "350" [ref=e451]
+          - generic [ref=e452]:
+            - generic [ref=e453]:
+              - generic [ref=e454]: Estimated Bortle Rating
+              - combobox [ref=e455]:
+                - 'option "Class 1: Excellent truly dark sky"'
+                - 'option "Class 2: Truly dark site" [selected]'
+                - 'option "Class 3: Rural sky"'
+                - 'option "Class 4: Rural/suburban transition"'
+                - 'option "Class 5: Suburban sky"'
+            - generic [ref=e456]:
+              - generic [ref=e457]: Dark Sky Designation
+              - textbox "IDA International Dark Sky Park, Reserve, etc." [ref=e458]
+        - generic [ref=e459]:
+          - generic [ref=e460]: Location Description & Observing Tips *
+          - textbox "Tell us why this location is great for stargazing, parking/access conditions, horizon obstructions, or public access notes..." [ref=e461]
+        - generic [ref=e462]:
+          - button "Cancel" [ref=e463] [cursor=pointer]
+          - button "Submit Feedback" [ref=e464] [cursor=pointer]
