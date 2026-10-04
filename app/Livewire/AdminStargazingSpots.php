@@ -3,50 +3,79 @@
 namespace App\Livewire;
 
 use App\Models\StargazingSpot;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+/**
+ * Class AdminStargazingSpots
+ *
+ * Administrative Livewire component providing full CRUD controls, Bortle rating assignment,
+ * region filtering, and visibility toggling for curated stargazing spots.
+ */
 class AdminStargazingSpots extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public string $countryFilter = '';
+
     public string $bortleFilter = '';
-    
+
     public bool $showModal = false;
+
     public ?int $editingSpotId = null;
 
     // Form inputs
     public string $name = '';
+
     public string $slug = '';
+
     public string $country = 'United Kingdom';
+
     public string $region = '';
+
     public string $latitude = '';
+
     public string $longitude = '';
+
     public int $elevation = 0;
+
     public int $bortle_class = 2;
+
     public string $dark_sky_status = '';
+
     public string $description = '';
+
     public bool $is_active = true;
 
+    /**
+     * Query string persistence bindings.
+     *
+     * @var array<string, array<string, string>>
+     */
     protected $queryString = [
         'search' => ['except' => ''],
         'countryFilter' => ['except' => ''],
     ];
 
-    public function updatingSearch()
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
 
-    public function updatingCountryFilter()
+    public function updatingCountryFilter(): void
     {
         $this->resetPage();
     }
 
-    public function openCreateModal()
+    /**
+     * Open the modal initialized for creating a new spot.
+     */
+    public function openCreateModal(): void
     {
         $this->resetValidation();
         $this->resetForm();
@@ -54,11 +83,16 @@ class AdminStargazingSpots extends Component
         $this->showModal = true;
     }
 
-    public function editSpot(int $id)
+    /**
+     * Open the modal populated with an existing spot's attributes for editing.
+     *
+     * @param  int  $id  Stargazing spot ID.
+     */
+    public function editSpot(int $id): void
     {
         $this->resetValidation();
         $spot = StargazingSpot::findOrFail($id);
-        
+
         $this->editingSpotId = $spot->id;
         $this->name = $spot->name;
         $this->slug = $spot->slug;
@@ -75,11 +109,14 @@ class AdminStargazingSpots extends Component
         $this->showModal = true;
     }
 
-    public function save()
+    /**
+     * Validate and persist the spot model (create or update).
+     */
+    public function save(): void
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:stargazing_spots,slug,' . ($this->editingSpotId ?? 'NULL') . ',id',
+            'slug' => 'nullable|string|max:255|unique:stargazing_spots,slug,'.($this->editingSpotId ?? 'NULL').',id',
             'country' => 'required|string|max:100',
             'region' => 'nullable|string|max:100',
             'latitude' => 'required|numeric|between:-90,90',
@@ -91,7 +128,7 @@ class AdminStargazingSpots extends Component
             'is_active' => 'boolean',
         ]);
 
-        $slug = !empty($this->slug) ? Str::slug($this->slug) : Str::slug($this->name);
+        $slug = ! empty($this->slug) ? Str::slug($this->slug) : Str::slug($this->name);
 
         $payload = [
             'name' => $this->name,
@@ -120,15 +157,25 @@ class AdminStargazingSpots extends Component
         $this->resetForm();
     }
 
-    public function toggleActive(int $id)
+    /**
+     * Toggle the active visibility status of a spot.
+     *
+     * @param  int  $id  Stargazing spot ID.
+     */
+    public function toggleActive(int $id): void
     {
         $spot = StargazingSpot::findOrFail($id);
-        $spot->is_active = !$spot->is_active;
+        $spot->is_active = ! $spot->is_active;
         $spot->save();
         session()->flash('message', "Toggled active state for '{$spot->name}'.");
     }
 
-    public function deleteSpot(int $id)
+    /**
+     * Permanently delete a spot.
+     *
+     * @param  int  $id  Stargazing spot ID.
+     */
+    public function deleteSpot(int $id): void
     {
         $spot = StargazingSpot::findOrFail($id);
         $name = $spot->name;
@@ -136,7 +183,10 @@ class AdminStargazingSpots extends Component
         session()->flash('message', "Deleted spot '{$name}'.");
     }
 
-    private function resetForm()
+    /**
+     * Reset modal form attributes to defaults.
+     */
+    private function resetForm(): void
     {
         $this->name = '';
         $this->slug = '';
@@ -151,24 +201,27 @@ class AdminStargazingSpots extends Component
         $this->is_active = true;
     }
 
-    public function render()
+    /**
+     * Render the admin spots management view.
+     */
+    public function render(): View
     {
         $query = StargazingSpot::query();
 
-        if (!empty($this->search)) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('country', 'like', '%' . $this->search . '%')
-                  ->orWhere('region', 'like', '%' . $this->search . '%')
-                  ->orWhere('dark_sky_status', 'like', '%' . $this->search . '%');
+        if (! empty($this->search)) {
+            $query->where(function (Builder $q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('country', 'like', '%'.$this->search.'%')
+                    ->orWhere('region', 'like', '%'.$this->search.'%')
+                    ->orWhere('dark_sky_status', 'like', '%'.$this->search.'%');
             });
         }
 
-        if (!empty($this->countryFilter)) {
+        if (! empty($this->countryFilter)) {
             $query->where('country', $this->countryFilter);
         }
 
-        if (!empty($this->bortleFilter)) {
+        if (! empty($this->bortleFilter)) {
             $query->where('bortle_class', (int) $this->bortleFilter);
         }
 

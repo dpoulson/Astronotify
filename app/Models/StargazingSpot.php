@@ -2,16 +2,55 @@
 
 namespace App\Models;
 
+use App\Libs\BortleScale;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * Class StargazingSpot
+ *
+ * Represents a public curated dark sky observation location.
+ *
+ * @property int $id
+ * @property string $name Location name
+ * @property string $slug Unique URL slug
+ * @property string $country Country name
+ * @property string|null $region State, province, or county
+ * @property float $latitude Decimal latitude (-90 to +90)
+ * @property float $longitude Decimal longitude (-180 to +180)
+ * @property int|null $elevation Height above sea level in meters
+ * @property int $bortle_class Bortle darkness scale rating (1-9)
+ * @property string|null $dark_sky_status Formal IDA/DS designation (e.g. Dark Sky Park)
+ * @property string|null $description Editorial summary and observing details
+ * @property bool $is_active Visibility status in the public directory
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string $bortle_description Human-readable Bortle class summary
+ * @property-read string $bortle_color Tailwind CSS classes for darkness badge
+ *
+ * @method static Builder|StargazingSpot active() Scope query to active spots only
+ *
+ * @mixin Builder
+ */
 class StargazingSpot extends Model
 {
     use HasFactory;
 
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     protected $table = 'stargazing_spots';
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'slug',
@@ -26,6 +65,11 @@ class StargazingSpot extends Model
         'is_active',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -37,6 +81,10 @@ class StargazingSpot extends Model
         ];
     }
 
+    /**
+     * The "booted" method of the model.
+     * Generates a unique URL slug upon creation if not explicitly supplied.
+     */
     protected static function booted(): void
     {
         static::creating(function (StargazingSpot $spot) {
@@ -45,44 +93,34 @@ class StargazingSpot extends Model
                 $slug = $base;
                 $count = 1;
                 while (static::where('slug', $slug)->exists()) {
-                    $slug = "{$base}-" . (++$count);
+                    $slug = "{$base}-".(++$count);
                 }
                 $spot->slug = $slug;
             }
         });
     }
 
-    public function scopeActive($query)
+    /**
+     * Scope a query to only include active public spots.
+     */
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
+    /**
+     * Accessor for human-readable Bortle scale description.
+     */
     public function getBortleDescriptionAttribute(): string
     {
-        return match ($this->bortle_class) {
-            1 => 'Class 1: Excellent truly dark sky',
-            2 => 'Class 2: Truly dark site with negligible glow',
-            3 => 'Class 3: Rural sky with detailed Milky Way',
-            4 => 'Class 4: Rural/suburban transition',
-            5 => 'Class 5: Suburban sky with moderate light pollution',
-            6 => 'Class 6: Bright suburban sky',
-            7 => 'Class 7: Suburban/urban transition',
-            8 => 'Class 8: City sky with faint stars only',
-            9 => 'Class 9: Inner-city sky',
-            default => "Class {$this->bortle_class}",
-        };
+        return BortleScale::description($this->bortle_class);
     }
 
+    /**
+     * Accessor for Bortle badge styling classes.
+     */
     public function getBortleColorAttribute(): string
     {
-        return match ($this->bortle_class) {
-            1 => 'text-emerald-400 bg-emerald-950/70 border-emerald-500/40',
-            2 => 'text-teal-400 bg-teal-950/70 border-teal-500/40',
-            3 => 'text-cyan-400 bg-cyan-950/70 border-cyan-500/40',
-            4 => 'text-blue-400 bg-blue-950/70 border-blue-500/40',
-            5 => 'text-yellow-400 bg-yellow-950/70 border-yellow-500/40',
-            6 => 'text-amber-400 bg-amber-950/70 border-amber-500/40',
-            default => 'text-orange-400 bg-orange-950/70 border-orange-500/40',
-        };
+        return BortleScale::badgeColor($this->bortle_class);
     }
 }

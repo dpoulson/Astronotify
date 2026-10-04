@@ -2,27 +2,44 @@
 
 namespace App\Livewire;
 
+use App\Models\CommandLog;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\CommandLog;
-use Illuminate\Support\Facades\Schedule;
 
+/**
+ * Class AdminCronMonitor
+ *
+ * Administrative Livewire component for inspecting scheduled task history,
+ * execution durations, error traces, and clearing historical command logs.
+ */
 class AdminCronMonitor extends Component
 {
     use WithPagination;
 
-    public function clearLogs()
+    /**
+     * Purge all historical command execution logs.
+     */
+    public function clearLogs(): void
     {
         CommandLog::truncate();
         session()->flash('message', 'All command logs have been cleared.');
     }
 
-    public function deleteLog($id)
+    /**
+     * Delete an individual command execution log by ID.
+     *
+     * @param  int|string  $id  CommandLog ID.
+     */
+    public function deleteLog(int|string $id): void
     {
         CommandLog::destroy($id);
     }
 
-    public function render()
+    /**
+     * Render the admin cron monitor view.
+     */
+    public function render(): View
     {
         $logs = CommandLog::orderBy('started_at', 'desc')->paginate(20);
 

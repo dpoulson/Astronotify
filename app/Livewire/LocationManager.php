@@ -2,27 +2,53 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\Location;
+use App\Mail\LocationTestMail;
+use App\Models\ISSTransit;
+use App\Models\WeatherCondition;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Livewire\Component;
 
+/**
+ * Class LocationManager
+ *
+ * Primary user dashboard component for creating, modifying, and monitoring
+ * personal observing locations, night forecasts, and ISS transit passes.
+ */
 class LocationManager extends Component
 {
     public $editingLocationId = null;
 
     public $name = '';
+
     public $town = '';
+
     public $latitude = '';
+
     public $longitude = '';
+
     public $elevation = 0;
+
     public $min_night_length_hours = 4;
+
     public $min_clear_hours = 2;
+
     public $max_wind_speed = 20.0;
+
     public $max_cloud_cover = 20;
+
     public $notify_iss_sun_transit = false;
+
     public $notify_iss_moon_transit = false;
+
     public $notify_stargazing_alerts = true;
+
     public $bortle = null;
+
     public $loadedPasses = [];
 
     protected $rules = [
@@ -43,13 +69,13 @@ class LocationManager extends Component
     public function updatedTown($value)
     {
         if (strlen($value) > 2) {
-            $response = \Illuminate\Support\Facades\Http::withUserAgent('Astronotify/1.0')->get('https://nominatim.openstreetmap.org/search', [
+            $response = Http::withUserAgent('Astronotify/1.0')->get('https://nominatim.openstreetmap.org/search', [
                 'q' => $value,
                 'format' => 'json',
                 'limit' => 1,
             ]);
 
-            if ($response->successful() && !empty($response->json())) {
+            if ($response->successful() && ! empty($response->json())) {
                 $result = $response->json()[0];
                 $this->latitude = round((float) $result['lat'], 5);
                 $this->longitude = round((float) $result['lon'], 5);
@@ -124,10 +150,7 @@ class LocationManager extends Component
                     'notify_stargazing_alerts' => $this->notify_stargazing_alerts,
                 ]);
                 $location->reevaluateConditions();
-
-                // Recalculate ISS transits immediately
-                $calculator = new \App\Services\ISSTransitCalculator();
-                $calculator->calculateForLocation($location);
+                $location->syncWeatherAndTransits(suppressAlerts: true);
             }
             session()->flash('message', 'Location updated successfully.');
         } else {
@@ -147,20 +170,7 @@ class LocationManager extends Component
                 'is_active' => true,
             ]);
 
-            // Recalculate ISS transits immediately
-            $calculator = new \App\Services\ISSTransitCalculator();
-            $calculator->calculateForLocation($location);
-
-            if (!app()->runningUnitTests()) {
-                try {
-                    \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
-                        '--location' => $location->id,
-                        '--no-alerts' => true,
-                    ]);
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning("Failed to immediately fetch weather for location {$location->id}: {$e->getMessage()}");
-                }
-            }
+            $location->syncWeatherAndTransits(suppressAlerts: true);
 
             session()->flash('message', 'Location added successfully.');
         }
@@ -179,6 +189,7 @@ class LocationManager extends Component
             session()->flash('message', 'Location removed.');
         }
     }
+
     public function loadPasses($locationId)
     {
         if (isset($this->loadedPasses[$locationId])) {
@@ -186,23 +197,26 @@ class LocationManager extends Component
         }
 
         $location = Auth::user()->locations()->find($locationId);
-        if (!$location) {
+        if (! $location) {
             return;
         }
 
-        $tleBody = \Illuminate\Support\Facades\Cache::remember('iss_tle_data', 14400, function () {
-            $response = \Illuminate\Support\Facades\Http::get('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle');
+        $tleBody = Cache::remember('iss_tle_data', 14400, function () {
+            $response = Http::get('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle');
+
             return $response->successful() ? $response->body() : null;
         });
 
-        if (!$tleBody) {
+        if (! $tleBody) {
             $this->loadedPasses[$locationId] = [];
+
             return;
         }
 
         $lines = explode("\n", trim($tleBody));
         if (count($lines) < 3) {
             $this->loadedPasses[$locationId] = [];
+
             return;
         }
 
@@ -212,10 +226,10 @@ class LocationManager extends Component
 
         $tle = new \Predict_TLE($tleName, $tleLine1, $tleLine2);
         $sat = new \Predict_Sat($tle);
-        $predict = new \Predict();
+        $predict = new \Predict;
 
         $startJD = \Predict_Time::get_current_daynum();
-        $qth = new \Predict_QTH();
+        $qth = new \Predict_QTH;
         $qth->lat = (float) $location->latitude;
         $qth->lon = (float) $location->longitude;
         $qth->alt = (float) ($location->elevation ?? 0.0);
@@ -224,6 +238,7 @@ class LocationManager extends Component
             $passes = $predict->get_passes($sat, $qth, $startJD, 7);
         } catch (\Exception $e) {
             $this->loadedPasses[$locationId] = [];
+
             return;
         }
 
@@ -234,9 +249,9 @@ class LocationManager extends Component
             $losUnix = \Predict_Time::daynum2unix($pass->los);
 
             $formattedPasses[] = [
-                'date' => \Carbon\Carbon::parse("@" . round($aosUnix))->timezone(config('app.timezone', 'UTC'))->format('D M jS'),
-                'aos' => \Carbon\Carbon::parse("@" . round($aosUnix))->timezone(config('app.timezone', 'UTC'))->format('H:i:s'),
-                'los' => \Carbon\Carbon::parse("@" . round($losUnix))->timezone(config('app.timezone', 'UTC'))->format('H:i:s'),
+                'date' => Carbon::parse('@'.round($aosUnix))->timezone(config('app.timezone', 'UTC'))->format('D M jS'),
+                'aos' => Carbon::parse('@'.round($aosUnix))->timezone(config('app.timezone', 'UTC'))->format('H:i:s'),
+                'los' => Carbon::parse('@'.round($losUnix))->timezone(config('app.timezone', 'UTC'))->format('H:i:s'),
                 'duration' => round(($losUnix - $aosUnix) / 60, 1),
                 'max_el' => round($pass->max_el, 0),
             ];
@@ -250,12 +265,12 @@ class LocationManager extends Component
         $location = Auth::user()->locations()->find($id);
         if ($location) {
             try {
-                \Illuminate\Support\Facades\Mail::to(Auth::user()->email)
-                    ->send(new \App\Mail\LocationTestMail($location, Auth::user()->name));
-                
-                session()->flash('message', 'Test notification sent successfully to ' . Auth::user()->email);
+                Mail::to(Auth::user()->email)
+                    ->send(new LocationTestMail($location, Auth::user()->name));
+
+                session()->flash('message', 'Test notification sent successfully to '.Auth::user()->email);
             } catch (\Exception $e) {
-                session()->flash('error', 'Failed to send test email: ' . $e->getMessage());
+                session()->flash('error', 'Failed to send test email: '.$e->getMessage());
             }
         }
     }
@@ -265,7 +280,7 @@ class LocationManager extends Component
         $location = Auth::user()->locations()->find($id);
         if ($location) {
             try {
-                \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
+                Artisan::call('weather:fetch', [
                     '--location' => $location->id,
                     '--no-alerts' => true,
                 ]);
@@ -278,7 +293,7 @@ class LocationManager extends Component
 
     public function render()
     {
-        $upcomingNights = \App\Models\WeatherCondition::with('location')
+        $upcomingNights = WeatherCondition::with('location')
             ->whereHas('location', function ($q) {
                 $q->where('user_id', Auth::id());
             })
@@ -287,7 +302,7 @@ class LocationManager extends Component
             ->orderBy('date', 'asc')
             ->get();
 
-        $upcomingTransits = \App\Models\ISSTransit::with('location')
+        $upcomingTransits = ISSTransit::with('location')
             ->whereHas('location', function ($q) {
                 $q->where('user_id', Auth::id());
             })

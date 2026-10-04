@@ -2,36 +2,63 @@
 
 namespace App\Services;
 
-use App\Models\Location;
+use App\Libs\SunCalc;
 use App\Models\ISSTransit;
+use App\Models\Location;
 use App\Models\Setting;
-use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
+use DateTime;
+use DateTimeZone;
+use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Predict;
+use Predict_QTH;
+use Predict_Sat;
+use Predict_Time;
+use Predict_TLE;
 
+/**
+ * Class ISSTransitCalculator
+ *
+ * Predicts orbital passes of the International Space Station (NORAD CATNR 25544)
+ * and calculates high-precision solar and lunar transits/conjunctions using SGP4 propagation.
+ */
 class ISSTransitCalculator
 {
+    /**
+     * Calculate and synchronize upcoming ISS solar/lunar transits for the given location.
+     *
+     * @param  Location  $location  Target observation location.
+     * @return array<int, array{id: int, type: string, time: string, separation_degrees: float, altitude_degrees: float, azimuth_degrees: float, is_exact_transit: bool, cloud_cover_percent: int|null, notified_at: Carbon|null}>
+     */
     public function calculateForLocation(Location $location): array
     {
-        if (!$location->is_active || (!$location->notify_iss_sun_transit && !$location->notify_iss_moon_transit)) {
+        if (! $location->is_active || (! $location->notify_iss_sun_transit && ! $location->notify_iss_moon_transit)) {
             ISSTransit::where('location_id', $location->id)->delete();
+
             return [];
         }
 
-        // Fetch/Cache TLE for 4 hours to avoid hitting CelesTrak too often on multiple rapid edits
+        // Fetch/Cache TLE for 4 hours to avoid hitting CelesTrak repeatedly on rapid saves
         $tleBody = Cache::remember('iss_tle_data', 14400, function () {
             $response = Http::get('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle');
+
             return $response->successful() ? $response->body() : null;
         });
 
-        if (!$tleBody) {
-            Log::error("ISS Transit Calculator: Failed to download TLE.");
+        if (! $tleBody) {
+            Log::error('ISS Transit Calculator: Failed to download TLE.');
+
             return [];
         }
 
         $lines = explode("\n", trim($tleBody));
         if (count($lines) < 3) {
-            Log::error("ISS Transit Calculator: Invalid TLE response format.");
+            Log::error('ISS Transit Calculator: Invalid TLE response format.');
+
             return [];
         }
 
@@ -39,34 +66,43 @@ class ISSTransitCalculator
         $tleLine1 = trim($lines[1]);
         $tleLine2 = trim($lines[2]);
 
+        $tle = new Predict_TLE($tleName, $tleLine1, $tleLine2);
+        $sat = new Predict_Sat($tle);
+        $predict = new Predict;
 
+        $forecastDays = (int) Setting::get('forecast_days', 7);
+        $limitDeg = (float) Setting::get('conjunction_threshold', 0.75);
+        $startJD = Predict_Time::get_current_daynum();
 
-        $tle = new \Predict_TLE($tleName, $tleLine1, $tleLine2);
-        $sat = new \Predict_Sat($tle);
-        $predict = new \Predict();
-
-        $forecastDays = (int) (Setting::where('key', 'forecast_days')->value('value') ?? 7);
-        $startJD = \Predict_Time::get_current_daynum();
-
-        // Load existing upcoming transit records to preserve notification state
+        // Load existing upcoming transit records to preserve notification timestamps
         $existingTransits = ISSTransit::where('location_id', $location->id)
             ->where('time', '>=', now()->subHours(2))
             ->get();
         $matchedTransitIds = [];
 
-        $qth = new \Predict_QTH();
+        $qth = new Predict_QTH;
         $qth->lat = (float) $location->latitude;
         $qth->lon = (float) $location->longitude;
         $qth->alt = (float) ($location->elevation ?? 0.0);
 
         try {
             $passes = $predict->get_passes($sat, $qth, $startJD, $forecastDays);
-        } catch (\Exception $e) {
-            Log::error("Failed to calculate passes for location {$location->name}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Failed to calculate passes for location {$location->name}: ".$e->getMessage());
+
             return [];
         }
 
         $createdTransits = [];
+
+        // Configure enabled celestial tracking targets
+        $targetTypes = [];
+        if ($location->notify_iss_sun_transit) {
+            $targetTypes['sun'] = fn (DateTime $date) => SunCalc::getPosition($date, $qth->lat, $qth->lon);
+        }
+        if ($location->notify_iss_moon_transit) {
+            $targetTypes['moon'] = fn (DateTime $date) => SunCalc::getMoonPosition($date, $qth->lat, $qth->lon);
+        }
 
         foreach ($passes as $pass) {
             $dur = $pass->los - $pass->aos;
@@ -74,217 +110,130 @@ class ISSTransitCalculator
                 continue;
             }
 
-            $minSunSep = 999.0;
-            $minSunTime = null;
-            $minSunAlt = 0;
-            $minSunAz = 0;
+            // Initialize target tracking data for this pass
+            $targetData = [];
+            foreach ($targetTypes as $type => $callback) {
+                $targetData[$type] = [
+                    'minSep' => 999.0,
+                    'minTime' => null,
+                    'minAlt' => 0.0,
+                    'minAz' => 0.0,
+                    'posCallback' => $callback,
+                ];
+            }
 
-            $minMoonSep = 999.0;
-            $minMoonTime = null;
-            $minMoonAlt = 0;
-            $minMoonAz = 0;
-
-            $sunPathPoints  = [];
-            $moonPathPoints = [];
-
-            // Coarse search
+            // Coarse search (10-second intervals)
             $coarseStep = 10.0 / 86400.0;
             for ($t = $pass->aos; $t <= $pass->los; $t += $coarseStep) {
                 try {
                     $predict->predict_calc($sat, $qth, $t);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     continue;
                 }
 
-                $unix = \Predict_Time::daynum2unix($t);
-                $date = new \DateTime("@" . round($unix));
+                $unix = Predict_Time::daynum2unix($t);
+                $date = new DateTime('@'.round($unix));
 
-                if ($location->notify_iss_sun_transit) {
-                    $sunPos = \App\Libs\SunCalc::getPosition($date, $qth->lat, $qth->lon);
-                    $sep = self::calculateSeparation($sat->el, $sat->az, $sunPos['altitude'], $sunPos['azimuth']);
-                    if ($sep < $minSunSep) {
-                        $minSunSep = $sep;
-                        $minSunTime = $t;
-                        $minSunAlt = $sunPos['altitude'];
-                        $minSunAz = $sunPos['azimuth'];
+                foreach ($targetData as $type => &$data) {
+                    $pos = ($data['posCallback'])($date);
+                    $sep = self::calculateSeparation($sat->el, $sat->az, $pos['altitude'], $pos['azimuth']);
+                    if ($sep < $data['minSep']) {
+                        $data['minSep'] = $sep;
+                        $data['minTime'] = $t;
+                        $data['minAlt'] = $pos['altitude'];
+                        $data['minAz'] = $pos['azimuth'];
                     }
                 }
-
-                if ($location->notify_iss_moon_transit) {
-                    $moonPos = \App\Libs\SunCalc::getMoonPosition($date, $qth->lat, $qth->lon);
-                    $sep = self::calculateSeparation($sat->el, $sat->az, $moonPos['altitude'], $moonPos['azimuth']);
-                    if ($sep < $minMoonSep) {
-                        $minMoonSep = $sep;
-                        $minMoonTime = $t;
-                        $minMoonAlt = $moonPos['altitude'];
-                        $minMoonAz = $moonPos['azimuth'];
-                    }
-                }
+                unset($data);
             }
 
-            // Fine search
+            // Fine search (0.2-second intervals within ±10s of closest approach)
             $fineStep = 0.2 / 86400.0;
+            foreach ($targetData as $type => &$data) {
+                if ($data['minTime'] !== null && $data['minSep'] < 3.0) {
+                    $startFine = max($pass->aos, $data['minTime'] - (10.0 / 86400.0));
+                    $endFine = min($pass->los, $data['minTime'] + (10.0 / 86400.0));
 
-            if ($location->notify_iss_sun_transit && $minSunTime !== null && $minSunSep < 3.0) {
-                $startFine = max($pass->aos, $minSunTime - (10.0 / 86400.0));
-                $endFine = min($pass->los, $minSunTime + (10.0 / 86400.0));
+                    for ($t = $startFine; $t <= $endFine; $t += $fineStep) {
+                        try {
+                            $predict->predict_calc($sat, $qth, $t);
+                        } catch (Exception $e) {
+                            continue;
+                        }
 
-                for ($t = $startFine; $t <= $endFine; $t += $fineStep) {
-                    try {
-                        $predict->predict_calc($sat, $qth, $t);
-                    } catch (\Exception $e) {
-                        continue;
-                    }
-
-                    $unix = \Predict_Time::daynum2unix($t);
-                    $date = new \DateTime("@" . round($unix));
-                    $sunPos = \App\Libs\SunCalc::getPosition($date, $qth->lat, $qth->lon);
-                    $sep = self::calculateSeparation($sat->el, $sat->az, $sunPos['altitude'], $sunPos['azimuth']);
-                    if ($sep < $minSunSep) {
-                        $minSunSep = $sep;
-                        $minSunTime = $t;
-                        $minSunAlt = $sunPos['altitude'];
-                        $minSunAz = $sunPos['azimuth'];
-                    }
-                }
-            }
-
-            if ($location->notify_iss_moon_transit && $minMoonTime !== null && $minMoonSep < 3.0) {
-                $startFine = max($pass->aos, $minMoonTime - (10.0 / 86400.0));
-                $endFine = min($pass->los, $minMoonTime + (10.0 / 86400.0));
-
-                for ($t = $startFine; $t <= $endFine; $t += $fineStep) {
-                    try {
-                        $predict->predict_calc($sat, $qth, $t);
-                    } catch (\Exception $e) {
-                        continue;
-                    }
-
-                    $unix = \Predict_Time::daynum2unix($t);
-                    $date = new \DateTime("@" . round($unix));
-                    $moonPos = \App\Libs\SunCalc::getMoonPosition($date, $qth->lat, $qth->lon);
-                    $sep = self::calculateSeparation($sat->el, $sat->az, $moonPos['altitude'], $moonPos['azimuth']);
-                    if ($sep < $minMoonSep) {
-                        $minMoonSep = $sep;
-                        $minMoonTime = $t;
-                        $minMoonAlt = $moonPos['altitude'];
-                        $minMoonAz = $moonPos['azimuth'];
+                        $unix = Predict_Time::daynum2unix($t);
+                        $date = new DateTime('@'.round($unix));
+                        $pos = ($data['posCallback'])($date);
+                        $sep = self::calculateSeparation($sat->el, $sat->az, $pos['altitude'], $pos['azimuth']);
+                        if ($sep < $data['minSep']) {
+                            $data['minSep'] = $sep;
+                            $data['minTime'] = $t;
+                            $data['minAlt'] = $pos['altitude'];
+                            $data['minAz'] = $pos['azimuth'];
+                        }
                     }
                 }
             }
+            unset($data);
 
-            $limitDeg = (float) (\App\Models\Setting::where('key', 'conjunction_threshold')->value('value') ?? 0.75);
+            // Record transits / conjunctions meeting user thresholds and above horizon
+            foreach ($targetData as $type => $data) {
+                if ($data['minTime'] !== null && $data['minSep'] <= $limitDeg && $data['minAlt'] > 0) {
+                    // Generate fine path points for orbital diagram (±30s around transit at 2s intervals)
+                    $pathPoints = [];
+                    $startPath = max($pass->aos, $data['minTime'] - (30.0 / 86400.0));
+                    $endPath = min($pass->los, $data['minTime'] + (30.0 / 86400.0));
+                    $pathStep = 2.0 / 86400.0;
 
-            $sunPathPoints = [];
-            if ($location->notify_iss_sun_transit && $minSunSep <= $limitDeg && $minSunAlt > 0) {
-                $startPath = max($pass->aos, $minSunTime - (30.0 / 86400.0));
-                $endPath = min($pass->los, $minSunTime + (30.0 / 86400.0));
-                $pathStep = 2.0 / 86400.0;
+                    for ($t = $startPath; $t <= $endPath; $t += $pathStep) {
+                        try {
+                            $predict->predict_calc($sat, $qth, $t);
+                        } catch (Exception $e) {
+                            continue;
+                        }
 
-                for ($t = $startPath; $t <= $endPath; $t += $pathStep) {
-                    try {
-                        $predict->predict_calc($sat, $qth, $t);
-                    } catch (\Exception $e) {
-                        continue;
+                        $unix = Predict_Time::daynum2unix($t);
+                        $date = new DateTime('@'.round($unix));
+                        $pos = ($data['posCallback'])($date);
+
+                        $pathPoints[] = [
+                            'dx' => round($sat->az - $pos['azimuth'], 4),
+                            'dy' => round($sat->el - $pos['altitude'], 4),
+                        ];
                     }
 
-                    $unix = \Predict_Time::daynum2unix($t);
-                    $date = new \DateTime("@" . round($unix));
-                    $sunPos = \App\Libs\SunCalc::getPosition($date, $qth->lat, $qth->lon);
-                    
-                    $sunPathPoints[] = [
-                        'dx' => round($sat->az  - $sunPos['azimuth'],  4),
-                        'dy' => round($sat->el  - $sunPos['altitude'], 4),
+                    $unix = Predict_Time::daynum2unix($data['minTime']);
+                    $date = new DateTime('@'.round($unix));
+                    $date->setTimezone(new DateTimeZone('UTC'));
+
+                    $transitRecord = $this->upsertTransit(
+                        $location,
+                        $type,
+                        $date,
+                        $data['minSep'],
+                        $data['minAlt'],
+                        $data['minAz'],
+                        $pathPoints,
+                        $existingTransits,
+                        $matchedTransitIds
+                    );
+
+                    $createdTransits[] = [
+                        'id' => $transitRecord->id,
+                        'type' => $type,
+                        'time' => $date->format('Y-m-d\TH:i:s\Z'),
+                        'separation_degrees' => round($data['minSep'], 4),
+                        'altitude_degrees' => round($data['minAlt'], 2),
+                        'azimuth_degrees' => round($data['minAz'], 2),
+                        'is_exact_transit' => ($data['minSep'] <= 0.26),
+                        'cloud_cover_percent' => $transitRecord->cloud_cover_percent,
+                        'notified_at' => $transitRecord->notified_at,
                     ];
                 }
-            }
-
-            $moonPathPoints = [];
-            if ($location->notify_iss_moon_transit && $minMoonSep <= $limitDeg && $minMoonAlt > 0) {
-                $startPath = max($pass->aos, $minMoonTime - (30.0 / 86400.0));
-                $endPath = min($pass->los, $minMoonTime + (30.0 / 86400.0));
-                $pathStep = 2.0 / 86400.0;
-
-                for ($t = $startPath; $t <= $endPath; $t += $pathStep) {
-                    try {
-                        $predict->predict_calc($sat, $qth, $t);
-                    } catch (\Exception $e) {
-                        continue;
-                    }
-
-                    $unix = \Predict_Time::daynum2unix($t);
-                    $date = new \DateTime("@" . round($unix));
-                    $moonPos = \App\Libs\SunCalc::getMoonPosition($date, $qth->lat, $qth->lon);
-                    
-                    $moonPathPoints[] = [
-                        'dx' => round($sat->az  - $moonPos['azimuth'],  4),
-                        'dy' => round($sat->el  - $moonPos['altitude'], 4),
-                    ];
-                }
-            }
-
-            if ($location->notify_iss_sun_transit && $minSunSep <= $limitDeg && $minSunAlt > 0) {
-                $unix = \Predict_Time::daynum2unix($minSunTime);
-                $date = new \DateTime("@" . round($unix));
-                $date->setTimezone(new \DateTimeZone('UTC'));
-
-                $transitRecord = $this->upsertTransit(
-                    $location,
-                    'sun',
-                    $date,
-                    $minSunSep,
-                    $minSunAlt,
-                    $minSunAz,
-                    $sunPathPoints,
-                    $existingTransits,
-                    $matchedTransitIds
-                );
-
-                $createdTransits[] = [
-                    "id" => $transitRecord->id,
-                    "type" => "sun",
-                    "time" => $date->format('Y-m-d\TH:i:s\Z'),
-                    "separation_degrees" => round($minSunSep, 4),
-                    "altitude_degrees" => round($minSunAlt, 2),
-                    "azimuth_degrees" => round($minSunAz, 2),
-                    "is_exact_transit" => ($minSunSep <= 0.26),
-                    "cloud_cover_percent" => $transitRecord->cloud_cover_percent,
-                    "notified_at" => $transitRecord->notified_at,
-                ];
-            }
-
-            if ($location->notify_iss_moon_transit && $minMoonSep <= $limitDeg && $minMoonAlt > 0) {
-                $unix = \Predict_Time::daynum2unix($minMoonTime);
-                $date = new \DateTime("@" . round($unix));
-                $date->setTimezone(new \DateTimeZone('UTC'));
-
-                $transitRecord = $this->upsertTransit(
-                    $location,
-                    'moon',
-                    $date,
-                    $minMoonSep,
-                    $minMoonAlt,
-                    $minMoonAz,
-                    $moonPathPoints,
-                    $existingTransits,
-                    $matchedTransitIds
-                );
-
-                $createdTransits[] = [
-                    "id" => $transitRecord->id,
-                    "type" => "moon",
-                    "time" => $date->format('Y-m-d\TH:i:s\Z'),
-                    "separation_degrees" => round($minMoonSep, 4),
-                    "altitude_degrees" => round($minMoonAlt, 2),
-                    "azimuth_degrees" => round($minMoonAz, 2),
-                    "is_exact_transit" => ($minMoonSep <= 0.26),
-                    "cloud_cover_percent" => $transitRecord->cloud_cover_percent,
-                    "notified_at" => $transitRecord->notified_at,
-                ];
             }
         }
 
-        // Remove any future transit records that were not matched (pass prediction changed or disappeared)
+        // Remove future transit records that were not matched (pass trajectory shifted or expired)
         $unmatchedIds = $existingTransits->pluck('id')->diff($matchedTransitIds);
         if ($unmatchedIds->isNotEmpty()) {
             ISSTransit::whereIn('id', $unmatchedIds)->delete();
@@ -296,27 +245,41 @@ class ISSTransitCalculator
         return $createdTransits;
     }
 
+    /**
+     * Persist or update an ISS transit record while preserving notification timestamps.
+     *
+     * @param  Location  $location  Parent location.
+     * @param  string  $type  Target celestial body ('sun' or 'moon').
+     * @param  DateTime  $date  Timestamp of closest approach in UTC.
+     * @param  float  $sep  Angular separation in degrees.
+     * @param  float  $alt  Altitude in degrees.
+     * @param  float  $az  Azimuth in degrees.
+     * @param  array<int, array{dx: float, dy: float}>|null  $pathPoints  Chord offset points.
+     * @param  Collection<int, ISSTransit>  $existingTransits  Preloaded existing records.
+     * @param  array<int, int>  $matchedTransitIds  Array tracking matched record IDs.
+     */
     private function upsertTransit(
         Location $location,
         string $type,
-        \DateTime $date,
+        DateTime $date,
         float $sep,
         float $alt,
         float $az,
         ?array $pathPoints,
-        $existingTransits,
+        Collection $existingTransits,
         array &$matchedTransitIds
     ): ISSTransit {
-        $carbonDate = \Carbon\Carbon::instance($date);
+        $carbonDate = Carbon::instance($date);
 
         // Find existing record of same type within +/- 15 minutes that hasn't been matched yet
-        $existing = $existingTransits->first(function ($t) use ($type, $carbonDate, $matchedTransitIds) {
+        $existing = $existingTransits->first(function (ISSTransit $t) use ($type, $carbonDate, $matchedTransitIds) {
             return $t->type === $type
-                && !in_array($t->id, $matchedTransitIds)
+                && ! in_array($t->id, $matchedTransitIds)
                 && abs($carbonDate->diffInMinutes($t->time)) <= 15;
         });
 
         $cloudCover = $location->getCloudCoverAt($date) ?? ($existing?->cloud_cover_percent);
+        $isExact = ($sep <= 0.26);
 
         if ($existing) {
             $existing->update([
@@ -324,11 +287,12 @@ class ISSTransitCalculator
                 'separation_degrees' => $sep,
                 'altitude_degrees' => $alt,
                 'azimuth_degrees' => $az,
-                'is_exact_transit' => ($sep <= 0.26),
+                'is_exact_transit' => $isExact,
                 'path_points' => $pathPoints ?: null,
                 'cloud_cover_percent' => $cloudCover,
             ]);
             $matchedTransitIds[] = $existing->id;
+
             return $existing;
         }
 
@@ -339,25 +303,35 @@ class ISSTransitCalculator
             'separation_degrees' => $sep,
             'altitude_degrees' => $alt,
             'azimuth_degrees' => $az,
-            'is_exact_transit' => ($sep <= 0.26),
+            'is_exact_transit' => $isExact,
             'path_points' => $pathPoints ?: null,
             'cloud_cover_percent' => $cloudCover,
             'notified_at' => null,
         ]);
         $matchedTransitIds[] = $newTransit->id;
+
         return $newTransit;
     }
 
-    private static function calculateSeparation($el1, $az1, $el2, $az2)
+    /**
+     * Calculate great-circle angular separation between two horizontal coordinate pairs in degrees.
+     *
+     * @param  float|int  $el1  Altitude of object 1 (degrees).
+     * @param  float|int  $az1  Azimuth of object 1 (degrees).
+     * @param  float|int  $el2  Altitude of object 2 (degrees).
+     * @param  float|int  $az2  Azimuth of object 2 (degrees).
+     * @return float Angular separation in degrees.
+     */
+    private static function calculateSeparation(float|int $el1, float|int $az1, float|int $el2, float|int $az2): float
     {
         $r_el1 = deg2rad($el1);
         $r_el2 = deg2rad($el2);
         $r_az1 = deg2rad($az1);
         $r_az2 = deg2rad($az2);
-        
+
         $cosTheta = sin($r_el1) * sin($r_el2) + cos($r_el1) * cos($r_el2) * cos($r_az1 - $r_az2);
         $cosTheta = max(-1.0, min(1.0, $cosTheta));
-        
+
         return rad2deg(acos($cosTheta));
     }
 }

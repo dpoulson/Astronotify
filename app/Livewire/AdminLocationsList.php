@@ -2,15 +2,27 @@
 
 namespace App\Livewire;
 
+use App\Models\Location;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Location;
 
+/**
+ * Class AdminLocationsList
+ *
+ * Administrative Livewire component for listing and managing all user-created
+ * observing locations across the application.
+ */
 class AdminLocationsList extends Component
 {
     use WithPagination;
 
-    public function deleteLocation($id)
+    /**
+     * Delete an observing location by its ID.
+     *
+     * @param  int|string  $id  Location ID.
+     */
+    public function deleteLocation(int|string $id): void
     {
         $location = Location::find($id);
         if ($location) {
@@ -18,10 +30,13 @@ class AdminLocationsList extends Component
         }
     }
 
-    public function render()
+    /**
+     * Render the admin locations directory view.
+     */
+    public function render(): View
     {
         return view('livewire.admin-locations-list', [
-            'locations' => Location::with('user')->paginate(15)
+            'locations' => Location::with('user')->paginate(15),
         ])->layout('layouts.app');
     }
 }

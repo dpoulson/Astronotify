@@ -2,26 +2,39 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Models\User;
-use App\Models\Location;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
 
+/**
+ * Class ManageNotifications
+ *
+ * Publicly accessible signed Livewire component allowing users to manage per-location
+ * email alert toggles (stargazing, solar transits, lunar transits) without logging in.
+ */
 class ManageNotifications extends Component
 {
     public User $user;
-    public $preferences = [];
-    public $saved = false;
 
-    public function mount(User $user)
+    public array $preferences = [];
+
+    public bool $saved = false;
+
+    /**
+     * Verify signed URL and initialize per-location notification preferences.
+     *
+     * @param  User  $user  Target user resolved from signed URL route binding.
+     */
+    public function mount(User $user): void
     {
         // Guard against unsigned access to ensure the URL cannot be guessed
         $isActualRoute = request()->route() && request()->route()->getName() === 'notifications.manage';
-        if ($isActualRoute && !request()->hasValidSignature()) {
+        if ($isActualRoute && ! request()->hasValidSignature()) {
             abort(401, 'This unsubscribe link is invalid or has expired.');
         }
 
         $this->user = $user;
-        
+
         foreach ($user->locations as $location) {
             $this->preferences[$location->id] = [
                 'name' => $location->name,
@@ -32,7 +45,10 @@ class ManageNotifications extends Component
         }
     }
 
-    public function save()
+    /**
+     * Persist updated notification preferences for all user locations.
+     */
+    public function save(): void
     {
         foreach ($this->preferences as $locationId => $prefs) {
             $location = $this->user->locations()->find($locationId);
@@ -48,7 +64,10 @@ class ManageNotifications extends Component
         $this->saved = true;
     }
 
-    public function render()
+    /**
+     * Render the guest notifications management template.
+     */
+    public function render(): View
     {
         return view('livewire.manage-notifications')
             ->layout('layouts.guest');

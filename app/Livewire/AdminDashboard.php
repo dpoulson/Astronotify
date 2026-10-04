@@ -2,85 +2,115 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\User;
 use App\Models\Location;
+use App\Models\User;
 use App\Models\WeatherCondition;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
+/**
+ * Class AdminDashboard
+ *
+ * Operational dashboard for administrators showing real-time system metrics,
+ * 7-day registration charts, API quota consumption, and manual queue/artisan triggers.
+ */
 class AdminDashboard extends Component
 {
-    public $sysMessage = null;
-    public $sysMessageType = 'success';
-    public $failedEmailCount = 0;
+    public ?string $sysMessage = null;
 
-    public function triggerWeatherFetch()
+    public string $sysMessageType = 'success';
+
+    public int $failedEmailCount = 0;
+
+    /**
+     * Manually trigger the weather:fetch artisan command.
+     */
+    public function triggerWeatherFetch(): void
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('weather:fetch');
+            Artisan::call('weather:fetch');
             $this->sysMessage = 'Weather forecast data fetched and processed successfully!';
             $this->sysMessageType = 'success';
-            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
-        } catch (\Exception $e) {
-            $this->sysMessage = 'Failed to run weather fetch: ' . $e->getMessage();
+            Cache::forget('admin_dashboard_stats_v2');
+        } catch (Exception $e) {
+            $this->sysMessage = 'Failed to run weather fetch: '.$e->getMessage();
             $this->sysMessageType = 'error';
         }
     }
 
-    public function triggerTransitCalculation()
+    /**
+     * Manually trigger the weather:iss-transits artisan command.
+     */
+    public function triggerTransitCalculation(): void
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('weather:iss-transits');
+            Artisan::call('weather:iss-transits');
             $this->sysMessage = 'ISS orbital transits calculated successfully!';
             $this->sysMessageType = 'success';
-            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
-        } catch (\Exception $e) {
-            $this->sysMessage = 'Failed to run transit calculations: ' . $e->getMessage();
+            Cache::forget('admin_dashboard_stats_v2');
+        } catch (Exception $e) {
+            $this->sysMessage = 'Failed to run transit calculations: '.$e->getMessage();
             $this->sysMessageType = 'error';
         }
     }
 
-    public function retryAllFailedEmails()
+    /**
+     * Push all failed queued jobs back to the execution queue.
+     */
+    public function retryAllFailedEmails(): void
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => 'all']);
+            Artisan::call('queue:retry', ['id' => 'all']);
             $this->sysMessage = 'All failed jobs have been pushed back to the queue!';
             $this->sysMessageType = 'success';
-            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats_v2');
-        } catch (\Exception $e) {
-            $this->sysMessage = 'Failed to retry jobs: ' . $e->getMessage();
+            Cache::forget('admin_dashboard_stats_v2');
+        } catch (Exception $e) {
+            $this->sysMessage = 'Failed to retry jobs: '.$e->getMessage();
             $this->sysMessageType = 'error';
         }
     }
 
-    public function render()
+    /**
+     * Render the administrative dashboard view.
+     */
+    public function render(): View
     {
-        $this->failedEmailCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        $this->failedEmailCount = DB::table('failed_jobs')->count();
 
-        $stats = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats_v2', 3600, function () {
+        $stats = Cache::remember('admin_dashboard_stats_v2', 3600, function () {
             $totalConditions = WeatherCondition::count();
             $optimalConditions = WeatherCondition::where('is_optimal', true)->count();
             $uniqueSearchedLocations = WeatherCondition::distinct('location_id')->count('location_id');
 
             // Group past 7 days for the chart
             $dates = collect(range(6, 0))->map(fn ($days) => today()->subDays($days)->toDateString());
-            
-            $userRegistrations = User::where('created_at', '>=', today()->subDays(6))->get()->groupBy(fn($u) => $u->created_at->toDateString());
-            $locationRegistrations = Location::where('created_at', '>=', today()->subDays(6))->get()->groupBy(fn($l) => $l->created_at->toDateString());
+
+            $userRegistrations = User::where('created_at', '>=', today()->subDays(6))
+                ->get()
+                ->groupBy(fn ($u) => $u->created_at->toDateString());
+
+            $locationRegistrations = Location::where('created_at', '>=', today()->subDays(6))
+                ->get()
+                ->groupBy(fn ($l) => $l->created_at->toDateString());
 
             $chartLabels = [];
             $chartUsers = [];
             $chartLocations = [];
 
             foreach ($dates as $date) {
-                $chartLabels[] = \Carbon\Carbon::parse((string) $date)->format('M d');
+                $chartLabels[] = Carbon::parse((string) $date)->format('M d');
                 $chartUsers[] = isset($userRegistrations[$date]) ? $userRegistrations[$date]->count() : 0;
                 $chartLocations[] = isset($locationRegistrations[$date]) ? $locationRegistrations[$date]->count() : 0;
             }
 
-            $apiCallsToday = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', today())->value('value');
-            $apiCallsWeek = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(6))->sum('value');
-            $apiCallsMonth = (int) \Illuminate\Support\Facades\DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(29))->sum('value');
+            $apiCallsToday = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', today())->value('value');
+            $apiCallsWeek = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(6))->sum('value');
+            $apiCallsMonth = (int) DB::table('daily_metrics')->where('key', 'weather_api_calls')->where('date', '>=', today()->subDays(29))->sum('value');
 
             return [
                 'totalUsers' => User::count(),

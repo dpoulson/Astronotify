@@ -3,6 +3,7 @@
 namespace App\Libs;
 
 use DateTime;
+use DateTimeInterface;
 
 /**
  * SunCalc astronomical calculations library.
@@ -13,10 +14,15 @@ class SunCalc
 {
     // Mathematical and Astronomical Constants
     const PI = 3.14159265358979323846;
+
     const RAD = 0.017453292519943295; // Degrees to Radians conversion factor (PI / 180)
+
     const DAY_MS = 86400000;          // Milliseconds in a solar day
+
     const J1970 = 2440588;            // Julian Date for Unix Epoch (1970-01-01)
+
     const J2000 = 2451545;            // Julian Date for J2000 epoch reference
+
     const EARTH_RADIUS = 6378.14;     // Earth equatorial radius in km
 
     /**
@@ -25,6 +31,7 @@ class SunCalc
     private static function toDays(DateTime $date): float
     {
         $timestamp = $date->getTimestamp() + (float) $date->format('u') / 1000000;
+
         return ($timestamp * 1000) / self::DAY_MS - 0.5 + self::J1970 - self::J2000;
     }
 
@@ -36,29 +43,36 @@ class SunCalc
         $y = 2000 + $d / 365.2425;
         if ($y < 1920) {
             $t = $y - 1900;
+
             return -2.79 + $t * (1.494119 + $t * (-0.0598939 + $t * (0.0061966 - $t * 0.000197)));
         }
         if ($y < 1941) {
             $t = $y - 1920;
+
             return 21.20 + $t * (0.84493 + $t * (-0.076100 + $t * 0.0020936));
         }
         if ($y < 1961) {
             $t = $y - 1950;
+
             return 29.07 + $t * (0.407 + $t * (-1 / 233 + $t / 2547));
         }
         if ($y < 1986) {
             $t = $y - 1975;
+
             return 45.45 + $t * (1.067 + $t * (-1 / 260 - $t / 718));
         }
         if ($y < 2005) {
             $t = $y - 2000;
+
             return 63.86 + $t * (0.3345 + $t * (-0.060374 + $t * (0.0017275 + $t * (0.000651814 + $t * 0.00002373599))));
         }
         if ($y < 2050) {
             $t = $y - 2000;
+
             return 62.92 + $t * (0.32217 + $t * 0.005589);
         }
         $t = ($y - 1820) / 100;
+
         return -20 + 32 * $t * $t - 0.5628 * (2150 - $y);
     }
 
@@ -76,6 +90,7 @@ class SunCalc
     private static function azimuth(float $H, float $phi, float $dec): float
     {
         $val = atan2(sin($H), cos($H) * sin($phi) - tan($dec) * cos($phi)) / self::RAD + 540;
+
         return fmod($val, 360);
     }
 
@@ -103,6 +118,7 @@ class SunCalc
         if ($h < 0) {
             $h = 0;
         }
+
         return 0.0002967 / tan($h + 0.00312536 / ($h + 0.08901179));
     }
 
@@ -124,7 +140,7 @@ class SunCalc
 
         return [
             'ra' => atan2(sin($L) * cos($e), cos($L)),
-            'dec' => asin(sin($e) * sin($L))
+            'dec' => asin(sin($e) * sin($L)),
         ];
     }
 
@@ -143,7 +159,7 @@ class SunCalc
 
         return [
             'azimuth' => self::azimuth($H, $phi, $c['dec']),
-            'altitude' => ($h + self::astroRefraction($h)) / self::RAD
+            'altitude' => ($h + self::astroRefraction($h)) / self::RAD,
         ];
     }
 
@@ -158,9 +174,10 @@ class SunCalc
         $dpsi = (-17.20 * sin($om) - 1.32 * sin(2 * $ls) - 0.23 * sin(2 * $lm) + 0.21 * sin(2 * $om)) / 3600;
         $deps = (9.20 * cos($om) + 0.57 * cos(2 * $ls) + 0.10 * cos(2 * $lm) - 0.09 * cos(2 * $om)) / 3600;
         $eps0 = 23.439291 - $t * (0.0130042 + $t * (0.00000016 - $t * 0.000000504));
+
         return [
             'dpsi' => $dpsi,
-            'eps' => self::RAD * ($eps0 + $deps)
+            'eps' => self::RAD * ($eps0 + $deps),
         ];
     }
 
@@ -185,7 +202,7 @@ class SunCalc
         $Mr = self::RAD * $M;
         $Mpr = self::RAD * $Mp;
         $Fr = self::RAD * $F;
-        
+
         $sl = 0;
         $sr = 0;
         $sb = 0;
@@ -220,7 +237,7 @@ class SunCalc
         return [
             'ra' => atan2(sin($l) * cos($no['eps']) - tan($b) * sin($no['eps']), cos($l)),
             'dec' => asin(sin($b) * cos($no['eps']) + cos($b) * sin($no['eps']) * sin($l)),
-            'dist' => 385000.56 + $sr / 1000
+            'dist' => 385000.56 + $sr / 1000,
         ];
     }
 
@@ -253,7 +270,7 @@ class SunCalc
         return [
             'fraction' => $fraction,
             'phase' => $phase,
-            'angle' => $angle
+            'angle' => $angle,
         ];
     }
 
@@ -274,7 +291,63 @@ class SunCalc
         return [
             'azimuth' => self::azimuth($H, $phi, $c['dec']),
             'altitude' => ($h + self::astroRefraction($h)) / self::RAD,
-            'distance' => $c['dist']
+            'distance' => $c['dist'],
+        ];
+    }
+
+    /**
+     * Calculates the Moon's phase details including human-readable name, emoji icon,
+     * illumination percentage (0-100), and numeric phase fraction (0.0-1.0).
+     *
+     * @param  DateTimeInterface|string  $date  Date or timestamp representation.
+     * @return array{name: string, emoji: string, illumination: int, phase: float}
+     */
+    public static function getMoonPhase(DateTimeInterface|string $date): array
+    {
+        if (is_string($date)) {
+            $dt = new DateTime($date);
+        } elseif ($date instanceof DateTime) {
+            $dt = $date;
+        } else {
+            $dt = new DateTime('@'.$date->getTimestamp());
+            $dt->setTimezone($date->getTimezone());
+        }
+
+        $illum = self::getMoonIllumination($dt);
+        $phaseVal = $illum['phase'];
+        $fraction = $illum['fraction'];
+
+        if ($phaseVal < 0.03 || $phaseVal >= 0.97) {
+            $name = 'New Moon';
+            $emoji = '🌑';
+        } elseif ($phaseVal < 0.22) {
+            $name = 'Waxing Crescent';
+            $emoji = '🌒';
+        } elseif ($phaseVal < 0.28) {
+            $name = 'First Quarter';
+            $emoji = '🌓';
+        } elseif ($phaseVal < 0.47) {
+            $name = 'Waxing Gibbous';
+            $emoji = '🌔';
+        } elseif ($phaseVal < 0.53) {
+            $name = 'Full Moon';
+            $emoji = '🌕';
+        } elseif ($phaseVal < 0.72) {
+            $name = 'Waning Gibbous';
+            $emoji = '🌖';
+        } elseif ($phaseVal < 0.78) {
+            $name = 'Last Quarter';
+            $emoji = '🌗';
+        } else {
+            $name = 'Waning Crescent';
+            $emoji = '🌘';
+        }
+
+        return [
+            'name' => $name,
+            'emoji' => $emoji,
+            'illumination' => (int) round($fraction * 100),
+            'phase' => $phaseVal,
         ];
     }
 }

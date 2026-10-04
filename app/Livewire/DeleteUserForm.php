@@ -3,24 +3,33 @@
 namespace App\Livewire;
 
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 use Laravel\Jetstream\Http\Livewire\DeleteUserForm as JetstreamDeleteUserForm;
 
+/**
+ * Class DeleteUserForm
+ *
+ * Custom Jetstream account deletion form allowing OAuth users without passwords
+ * to delete their accounts cleanly while enforcing password verification for standard users.
+ */
 class DeleteUserForm extends JetstreamDeleteUserForm
 {
     /**
-     * Delete the current user.
+     * Delete the current user and flush their session.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Laravel\Jetstream\Contracts\DeletesUsers  $deleter
-     * @param  \Illuminate\Contracts\Auth\StatefulGuard  $auth
-     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+     * @param  Request  $request  Current HTTP request.
+     * @param  DeletesUsers  $deleter  User deletion contract service.
+     * @param  StatefulGuard  $auth  Stateful authentication guard.
+     *
+     * @throws ValidationException If password verification fails for password-authenticated users.
      */
-    public function deleteUser(Request $request, DeletesUsers $deleter, StatefulGuard $auth)
+    public function deleteUser(Request $request, DeletesUsers $deleter, StatefulGuard $auth): Redirector|RedirectResponse
     {
         $this->resetErrorBag();
 

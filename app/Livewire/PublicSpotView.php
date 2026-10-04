@@ -2,23 +2,41 @@
 
 namespace App\Livewire;
 
+use App\Models\ISSTransit;
 use App\Models\Location;
 use App\Models\StargazingSpot;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
+/**
+ * Class PublicSpotView
+ *
+ * Livewire component managing the public detail view for a curated stargazing spot,
+ * including 4-night cloud forecasts, predicted ISS passes, and 1-click user tracking.
+ */
 class PublicSpotView extends Component
 {
     public string $slug;
+
     public ?StargazingSpot $spot = null;
+
     public array $weatherForecast = [];
+
     public array $upcomingPasses = [];
+
     public bool $isSavedByUser = false;
 
-    public function mount(string $slug)
+    /**
+     * Initialize spot view with weather forecast and upcoming passes.
+     *
+     * @param  string  $slug  Unique slug of the stargazing spot.
+     */
+    public function mount(string $slug): void
     {
         $this->slug = $slug;
         $this->spot = StargazingSpot::where('slug', $slug)->where('is_active', true)->firstOrFail();
@@ -28,23 +46,29 @@ class PublicSpotView extends Component
         $this->loadUpcomingPasses();
     }
 
-    public function checkIfSaved()
+    /**
+     * Determine whether the currently authenticated user is tracking this spot.
+     */
+    public function checkIfSaved(): void
     {
         if (Auth::check() && $this->spot) {
             $this->isSavedByUser = Location::where('user_id', Auth::id())
                 ->where(function ($q) {
                     $q->where('name', $this->spot->name)
-                      ->orWhere(function ($sub) {
-                          $sub->whereBetween('latitude', [$this->spot->latitude - 0.01, $this->spot->latitude + 0.01])
-                              ->whereBetween('longitude', [$this->spot->longitude - 0.01, $this->spot->longitude + 0.01]);
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereBetween('latitude', [$this->spot->latitude - 0.01, $this->spot->latitude + 0.01])
+                                ->whereBetween('longitude', [$this->spot->longitude - 0.01, $this->spot->longitude + 0.01]);
+                        });
                 })->exists();
         }
     }
 
-    public function trackSpotInAccount()
+    /**
+     * Add the current spot as an active observing location in the user's dashboard.
+     */
+    public function trackSpotInAccount(): mixed
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('register', [
                 'name' => $this->spot->name,
                 'lat' => $this->spot->latitude,
@@ -56,6 +80,7 @@ class PublicSpotView extends Component
 
         if ($this->isSavedByUser) {
             session()->flash('message', "You are already tracking {$this->spot->name} in your dashboard.");
+
             return redirect()->route('dashboard');
         }
 
@@ -76,30 +101,18 @@ class PublicSpotView extends Component
             'notify_iss_moon_transit' => true,
         ]);
 
-        try {
-            $calculator = new \App\Services\ISSTransitCalculator();
-            $calculator->calculateForLocation($location);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Failed to calculate ISS transits for spot {$location->id}: {$e->getMessage()}");
-        }
-
-        if (!app()->runningUnitTests()) {
-            try {
-                \Illuminate\Support\Facades\Artisan::call('weather:fetch', [
-                    '--location' => $location->id,
-                    '--no-alerts' => true,
-                ]);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning("Failed to fetch initial weather for spot {$location->id}: {$e->getMessage()}");
-            }
-        }
+        $location->syncWeatherAndTransits(suppressAlerts: true);
 
         $this->isSavedByUser = true;
         session()->flash('message', "Added {$this->spot->name} to your locations! Transits and forecasts have been synchronized.");
+
         return redirect()->route('dashboard');
     }
 
-    private function loadWeatherForecast()
+    /**
+     * Load and cache short-range 4-night cloud cover forecasts from Open-Meteo.
+     */
+    private function loadWeatherForecast(): void
     {
         $cacheKey = "spot_weather_v2_{$this->spot->id}";
 
@@ -122,8 +135,8 @@ class PublicSpotView extends Component
                         foreach ($data['daily']['time'] as $i => $dateStr) {
                             $sunset = $data['daily']['sunset'][$i] ?? null;
                             $sunrise = $data['daily']['sunrise'][$i] ?? null;
-                            
-                            // Calculate average nighttime cloud cover (approx between 22:00 and 03:00)
+
+                            // Calculate average nighttime cloud cover (approx between 21:00 and 04:00)
                             $nightClouds = [];
                             if (isset($data['hourly']['time'], $data['hourly']['cloud_cover'])) {
                                 foreach ($data['hourly']['time'] as $hIdx => $hTime) {
@@ -152,7 +165,7 @@ class PublicSpotView extends Component
 
                     return $days;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Graceful fallback on network timeout
             }
 
@@ -160,9 +173,11 @@ class PublicSpotView extends Component
         });
     }
 
-    private function loadUpcomingPasses()
+    /**
+     * Load upcoming modeled ISS passes cached for 6 hours.
+     */
+    private function loadUpcomingPasses(): void
     {
-        // Cache passes for 6 hours
         $cacheKey = "spot_passes_v2_{$this->spot->id}";
 
         $this->upcomingPasses = Cache::remember($cacheKey, 21600, function () {
@@ -173,7 +188,7 @@ class PublicSpotView extends Component
                     ->first();
 
                 if ($nearbyLoc) {
-                    $transits = \App\Models\ISSTransit::where('location_id', $nearbyLoc->id)
+                    $transits = ISSTransit::where('location_id', $nearbyLoc->id)
                         ->where('time', '>=', now())
                         ->orderBy('time', 'asc')
                         ->limit(3)
@@ -192,13 +207,17 @@ class PublicSpotView extends Component
                         ];
                     })->toArray();
                 }
-            } catch (\Exception $e) {}
+            } catch (Exception $e) {
+            }
 
             return [];
         });
     }
 
-    public function render()
+    /**
+     * Render the spot detail view.
+     */
+    public function render(): View
     {
         return view('livewire.public-spot-view', [
             'spot' => $this->spot,

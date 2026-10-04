@@ -3,18 +3,36 @@
 namespace App\Livewire;
 
 use App\Models\StargazingSpot;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+/**
+ * Class PublicSpotsList
+ *
+ * Livewire component managing the public directory of curated dark-sky stargazing spots,
+ * providing real-time text/country/Bortle filtering, pagination, and Leaflet map synchronization.
+ */
 class PublicSpotsList extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public string $country = '';
+
     public string $bortle = '';
+
     public string $view = 'grid';
 
+    /**
+     * Query string persistence bindings.
+     *
+     * @var array<string, array<string, string>>
+     */
     protected $queryString = [
         'search' => ['except' => ''],
         'country' => ['except' => ''],
@@ -22,36 +40,39 @@ class PublicSpotsList extends Component
         'view' => ['except' => 'grid'],
     ];
 
-    public function updatingSearch()
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
 
-    public function updatedSearch()
+    public function updatedSearch(): void
     {
         $this->dispatch('map-spots-updated', spots: $this->getMapSpots());
     }
 
-    public function updatingCountry()
+    public function updatingCountry(): void
     {
         $this->resetPage();
     }
 
-    public function updatedCountry()
+    public function updatedCountry(): void
     {
         $this->dispatch('map-spots-updated', spots: $this->getMapSpots());
     }
 
-    public function updatingBortle()
+    public function updatingBortle(): void
     {
         $this->resetPage();
     }
 
-    public function updatedBortle()
+    public function updatedBortle(): void
     {
         $this->dispatch('map-spots-updated', spots: $this->getMapSpots());
     }
 
+    /**
+     * Clear all filters and reset back to initial view.
+     */
     public function resetFilters(): void
     {
         $this->search = '';
@@ -61,44 +82,59 @@ class PublicSpotsList extends Component
         $this->dispatch('map-spots-updated', spots: $this->getMapSpots());
     }
 
+    /**
+     * Switch directory presentation between 'grid' and 'map'.
+     *
+     * @param  string  $view  Selected view mode ('grid' or 'map').
+     */
     public function setView(string $view): void
     {
-        $this->view = in_array($view, ['grid', 'map']) ? $view : 'grid';
+        $this->view = in_array($view, ['grid', 'map'], true) ? $view : 'grid';
     }
 
-    protected function getFilteredQuery()
+    /**
+     * Build the filtered Eloquent query based on active search, country, and Bortle class.
+     *
+     * @return Builder<StargazingSpot>
+     */
+    protected function getFilteredQuery(): Builder
     {
         $query = StargazingSpot::query()->where('is_active', true);
 
-        if (!empty($this->search)) {
-            $term = '%' . trim($this->search) . '%';
-            $query->where(function ($q) use ($term) {
+        if (! empty($this->search)) {
+            $term = '%'.trim($this->search).'%';
+            $query->where(function (Builder $q) use ($term) {
                 $q->where('name', 'like', $term)
-                  ->orWhere('region', 'like', $term)
-                  ->orWhere('country', 'like', $term)
-                  ->orWhere('dark_sky_status', 'like', $term)
-                  ->orWhere('description', 'like', $term);
+                    ->orWhere('region', 'like', $term)
+                    ->orWhere('country', 'like', $term)
+                    ->orWhere('dark_sky_status', 'like', $term)
+                    ->orWhere('description', 'like', $term);
             });
         }
 
-        if (!empty($this->country)) {
+        if (! empty($this->country)) {
             $query->where('country', $this->country);
         }
 
-        if (!empty($this->bortle)) {
+        if (! empty($this->bortle)) {
             $query->where('bortle_class', '<=', (int) $this->bortle);
         }
 
         return $query;
     }
 
-    public function getMapSpots()
+    /**
+     * Get lightweight collection of spots formatted for the interactive Leaflet map.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function getMapSpots(): Collection
     {
         return $this->getFilteredQuery()
             ->orderBy('bortle_class', 'asc')
             ->orderBy('name', 'asc')
             ->get()
-            ->map(fn ($s) => [
+            ->map(fn (StargazingSpot $s) => [
                 'id' => $s->id,
                 'name' => $s->name,
                 'slug' => $s->slug,
@@ -111,12 +147,15 @@ class PublicSpotsList extends Component
                 'bortle_color' => $s->bortle_color,
                 'bortle_desc' => $s->bortle_description,
                 'dark_sky_status' => $s->dark_sky_status,
-                'description' => \Illuminate\Support\Str::limit($s->description, 140),
+                'description' => Str::limit($s->description, 140),
                 'url' => route('spots.show', $s->slug),
             ]);
     }
 
-    public function render()
+    /**
+     * Render the public spots list view.
+     */
+    public function render(): View
     {
         $query = $this->getFilteredQuery();
         $mapSpots = $this->getMapSpots();
@@ -126,22 +165,22 @@ class PublicSpotsList extends Component
             ->orderBy('name', 'asc')
             ->paginate(12);
 
+        $counts = StargazingSpot::where('is_active', true)
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN bortle_class = 1 THEN 1 ELSE 0 END) as b1, SUM(CASE WHEN bortle_class = 2 THEN 1 ELSE 0 END) as b2')
+            ->first();
+
         $countries = StargazingSpot::where('is_active', true)
             ->distinct()
             ->orderBy('country')
             ->pluck('country');
 
-        $totalSpots = StargazingSpot::where('is_active', true)->count();
-        $bortle1Count = StargazingSpot::where('is_active', true)->where('bortle_class', 1)->count();
-        $bortle2Count = StargazingSpot::where('is_active', true)->where('bortle_class', 2)->count();
-
         return view('livewire.public-spots-list', [
             'spots' => $spots,
             'mapSpots' => $mapSpots,
             'countries' => $countries,
-            'totalSpots' => $totalSpots,
-            'bortle1Count' => $bortle1Count,
-            'bortle2Count' => $bortle2Count,
+            'totalSpots' => (int) ($counts->total ?? 0),
+            'bortle1Count' => (int) ($counts->b1 ?? 0),
+            'bortle2Count' => (int) ($counts->b2 ?? 0),
         ])->layout('layouts.guest');
     }
 }

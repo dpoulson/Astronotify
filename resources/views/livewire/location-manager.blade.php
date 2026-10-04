@@ -366,18 +366,11 @@
 
                                 {{-- Card Quick Actions --}}
                                 @php
-                                    $tTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
-                                    $tEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
-                                    $tTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
-                                    $tUrl = $transit->public_token ? route('transit.show', $transit->public_token) : 'https://astronotify.org';
-                                    $gTitle = urlencode("ISS {$tTypeStr} Transit — {$transit->location->name}");
-                                    $gDesc = urlencode("ISS {$tTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: {$tUrl}");
-                                    $gLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
-                                    $gCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$gTitle}&dates={$tTimeIso}/{$tEndIso}&details={$gDesc}&location={$gLoc}";
-                                    $sSummary = "ISS {$tTypeStr} Transit — {$transit->location->name}";
-                                    $sDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
-                                    $sCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
-                                    $sText = "🛰️ ISS {$tTypeStr} Transit over {$transit->location->name}\n📅 {$sDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$sCloudStr}\nModeled via Astronotify: {$tUrl}";
+                                    $gCalUrl = $transit->google_calendar_url;
+                                    $sSummary = $transit->event_title;
+                                    $sText = $transit->share_text;
+                                    $tTimeIso = $transit->utc_iso;
+                                    $tEndIso = $transit->utc_end_iso;
                                 @endphp
                                 <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
                                     <button 
@@ -1182,19 +1175,12 @@
 
                     {{-- Modal Calendar & Community Share Actions --}}
                     @php
-                        $mTimeIso = \Carbon\Carbon::parse($transit->time)->utc()->format('Ymd\THis\Z');
-                        $mEndIso = \Carbon\Carbon::parse($transit->time)->addMinutes(15)->utc()->format('Ymd\THis\Z');
-                        $mTypeStr = $transit->type === 'sun' ? 'Solar' : 'Lunar';
-                        $mtUrl = $transit->public_token ? route('transit.show', $transit->public_token) : 'https://astronotify.org';
-                        $mgTitle = urlencode("ISS {$mTypeStr} Transit — {$transit->location->name}");
-                        $mgDesc = urlencode("ISS {$mTypeStr} Transit over {$transit->location->name}.\nSeparation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ")\nAltitude: {$transit->altitude_degrees}°, Azimuth: {$transit->azimuth_degrees}°\nModeled via Astronotify: {$mtUrl}");
-                        $mgLoc = urlencode("{$transit->location->name} ({$transit->location->latitude}, {$transit->location->longitude})");
-                        $mgCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$mgTitle}&dates={$mTimeIso}/{$mEndIso}&details={$mgDesc}&location={$mgLoc}";
-                        $msSummary = "ISS {$mTypeStr} Transit — {$transit->location->name}";
-                        $msDateFormatted = \Carbon\Carbon::parse($transit->time)->timezone(config('app.timezone', 'UTC'))->format('l, M jS \a\t H:i:s');
-                        $msCloudStr = $transit->cloud_cover_percent !== null ? $transit->cloud_cover_percent . "% cloud" : "Pending";
-                        $msText = "🛰️ ISS {$mTypeStr} Transit over {$transit->location->name}\n📅 {$msDateFormatted}\n🎯 Separation: {$transit->separation_degrees}° (" . ($transit->is_exact_transit ? "True Transit" : "Conjunction") . ") | Alt: {$transit->altitude_degrees}°\n☁️ Forecast: {$msCloudStr}\nModeled via Astronotify: {$mtUrl}";
-                        $msWhatsApp = "https://api.whatsapp.com/send?text=" . urlencode($msText);
+                        $mTimeIso = $transit->utc_iso;
+                        $mEndIso = $transit->utc_end_iso;
+                        $mgCalUrl = $transit->google_calendar_url;
+                        $msSummary = $transit->event_title;
+                        $msText = $transit->share_text;
+                        $msWhatsApp = $transit->whatsapp_share_url;
                     @endphp
                     <div class="pt-3 border-t border-slate-800 space-y-2">
                         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Add to Calendar &amp; Share with Club</div>
