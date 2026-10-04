@@ -68,6 +68,27 @@
             </div>
         </div>
 
+        <!-- Supporting Astronotify -->
+        <div class="mt-8 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900/80 to-slate-900/60 border border-purple-500/30 p-6 sm:p-7 relative overflow-hidden shadow-xl">
+            <div class="absolute -right-8 -top-8 w-44 h-44 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
+                <div class="space-y-2 max-w-xl">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-900/50 border border-purple-700/50 text-purple-300 text-xs font-semibold">
+                        <svg class="w-3.5 h-3.5 text-rose-400 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span>Independent &amp; Free</span>
+                    </div>
+                    <h4 class="text-xl font-bold text-white tracking-tight">Support Astronotify</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        Astronotify is completely free, ad-free, and open to the stargazing community. Orbital mechanics calculations, satellite ephemerides, and daily meteorological predictions run on dedicated cloud servers funded out of pocket. If Astronotify has helped you plan observing nights or capture ISS transits, a voluntary donation helps keep the project going.
+                    </p>
+                </div>
+                <div class="shrink-0 flex flex-col items-start sm:items-end gap-2">
+                    <x-donate-button>Support via PayPal</x-donate-button>
+                    <span class="text-[11px] text-slate-400">One-off contribution &bull; Every bit helps!</span>
+                </div>
+            </div>
+        </div>
+
         <div class="pt-6 border-t border-slate-800 flex items-center justify-between">
             <span class="text-xs text-slate-500">Need more technical details?</span>
             <a href="{{ route('faq') }}" class="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1">

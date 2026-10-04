@@ -36,15 +36,7 @@
                 <span>Discord</span>
             </a>
 
-            <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" class="inline-flex m-0">
-                <input type="hidden" name="cmd" value="_donations" />
-                <input type="hidden" name="business" value="admin@we-make-things.co.uk" />
-                <input type="hidden" name="currency_code" value="GBP" />
-                <button type="submit" class="group flex items-center space-x-1.5 text-slate-300 hover:text-blue-400 transition-colors bg-slate-900 hover:bg-slate-800 border border-slate-700 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                    <span>Donate</span>
-                </button>
-            </form>
+            <x-donate-button variant="footer">Donate</x-donate-button>
         </div>
     </div>
 </footer>

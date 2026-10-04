@@ -379,6 +379,32 @@
                 </div>
             </div>
 
+            <!-- Support & Funding Card -->
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-rose-950/30 via-purple-950/40 to-slate-900/60 border border-purple-500/30 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-black text-white">Help Keep Astronotify Free &amp; Ad-Free</h4>
+                            <p class="text-xs text-purple-200">Voluntary contributions directly offset server hosting, weather feeds, and satellite tracking compute.</p>
+                        </div>
+                    </div>
+
+                    <div class="shrink-0">
+                        <x-donate-button>Donate via PayPal</x-donate-button>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-300 leading-relaxed bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+                    <strong class="text-slate-200 block font-semibold">Is Astronotify free to use? How is it funded?</strong>
+                    <p class="text-slate-400">
+                        Yes, Astronotify is 100% free to use for amateur astronomers and stargazers worldwide. We will never sell your data or clutter your observing forecast with ads. If Astronotify has helped you plan an astronomy night or photograph an ISS transit, small donations via PayPal help offset ongoing cloud server and domain renewal expenses.
+                    </p>
+                </div>
+            </div>
+
             <!-- In-App Feedback Form Launcher -->
             <div class="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="space-y-1">
@@ -399,6 +425,19 @@
                     Submit Spot Suggestion
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Bottom FAQ Support Banner -->
+    <div class="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div class="flex items-center gap-3">
+            <span class="text-xl">✨</span>
+            <p class="text-xs text-slate-400">
+                Astronotify is an independent passion project run without advertisements. If you enjoy the tool, consider supporting server expenses.
+            </p>
+        </div>
+        <div class="shrink-0">
+            <x-donate-button variant="subtle">Support via PayPal</x-donate-button>
         </div>
     </div>
 </div>
