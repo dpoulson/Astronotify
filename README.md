@@ -5,7 +5,7 @@
 [![Livewire](https://img.shields.io/badge/livewire-3.x-pink.svg)](https://livewire.laravel.com/)
 [![Tailwind CSS](https://img.shields.io/badge/tailwind-3.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Code Style: Pint](https://img.shields.io/badge/code%20style-pint-green.svg)](https://github.com/laravel/pint)
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![License: GPL v2](https://img.shields.io/badge/license-GPLv2-blue.svg)](LICENSE)
 
 > Automated clear-sky stargazing alerts, International Space Station (ISS) solar and lunar transit predictions, and curated dark-sky discovery for astronomers and astrophotographers.
 
@@ -56,9 +56,11 @@
    ```bash
    composer setup
    ```
-   *This command runs `composer install`, copies `.env.example` to `.env` if missing, generates the application key, runs database migrations, and builds frontend assets.*\n
+   *This command runs `composer install`, copies `.env.example` to `.env` if missing, generates the application key, runs database migrations, and builds frontend assets.*
+
 3. **Configure Environment (`.env`)**:
-   Verify or customize your settings:\n   ```env
+   Verify or customize your settings:
+   ```env
    APP_NAME="Astronotify"
    APP_URL=http://localhost:8000
    DB_CONNECTION=sqlite
@@ -123,4 +125,4 @@ Continuous integration is automated via GitHub Actions and Gitea Actions workflo
 
 ## 📄 License
 
-Astronotify is open-sourced software licensed under the [MIT License](LICENSE).
+Astronotify is open-sourced software licensed under the [GNU General Public License v2.0](LICENSE).
