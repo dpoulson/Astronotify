@@ -56,7 +56,11 @@ jobs:
 
       - name: Verify Compiled Assets Are Committed
         run: |
-          git diff --exit-code public/build || (echo "::error::Compiled assets in public/build are not up to date with source files. Run 'npm run build' and commit public/build." && exit 1)
+          if ! git diff --exit-code public/build; then
+            echo "::error::Compiled assets in public/build are out of sync with source files. Run 'npm run build' and commit public/build."
+            git status --short public/build
+            exit 1
+          fi
 
       - name: Prepare Testing Environment
         run: |

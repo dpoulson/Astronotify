@@ -28,7 +28,10 @@ git reset --hard "${REMOTE_NAME}/${BRANCH_NAME}"
 
 # 3. Production PHP dependencies
 echo "==> Installing Composer dependencies..."
-"${COMPOSER_BIN}" install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+if ! command -v "${COMPOSER_BIN}" &>/dev/null && [ -f composer.phar ]; then
+  COMPOSER_BIN="${PHP_BIN} composer.phar"
+fi
+${COMPOSER_BIN} install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
 # 4. Database migrations
 echo "==> Running database migrations..."
