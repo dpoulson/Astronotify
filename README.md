@@ -33,7 +33,7 @@
   - SunCalc solar & lunar ephemeris modeling
   - JPL DE421 ephemeris integration
 - **Weather Services**: High-resolution meteorological data via [Open-Meteo](https://open-meteo.com)
-- **Code Quality & CI**: [Laravel Pint](https://github.com/laravel/pint), [PHPUnit](https://phpunit.de), Gitea Actions
+- **Code Quality & CI**: [Laravel Pint](https://github.com/laravel/pint), [PHPUnit](https://phpunit.de), GitHub Actions & Gitea Actions
 
 ---
 
@@ -48,26 +48,20 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone ssh://git@gitea.nas.lan.60chequersavenue.net:30009/daz/Astronotify.git
-   cd Astronotify
+   git clone https://github.com/dpoulson/astronotify.git
+   cd astronotify
    ```
 
 2. **Automated Setup**:
    ```bash
    composer setup
    ```
-   *This command runs `composer install`, copies `.env.example` to `.env` if missing, generates the application key, runs database migrations, and builds frontend assets.*
-
+   *This command runs `composer install`, copies `.env.example` to `.env` if missing, generates the application key, runs database migrations, and builds frontend assets.*\n
 3. **Configure Environment (`.env`)**:
-   Verify or customize your settings:
-   ```env
+   Verify or customize your settings:\n   ```env
    APP_NAME="Astronotify"
    APP_URL=http://localhost:8000
    DB_CONNECTION=sqlite
-   # or for MySQL:
-   # DB_CONNECTION=mysql
-   # DB_HOST=127.0.0.1
-   # DB_DATABASE=astronotify
    ```
 
 4. **Seed Stargazing Spots (Optional)**:
@@ -117,13 +111,12 @@ php artisan test
 ./vendor/bin/pint
 ```
 
-Continuous integration is automated via [.gitea/workflows/lint.yaml](.gitea/workflows/lint.yaml).
+Continuous integration is automated via GitHub Actions and Gitea Actions workflows.
 
 ---
 
 ## 💬 Community & Feedback
 
-- **Discord Community**: Join our [Official Discord](https://discord.gg/UuwaXjRjZU) for pass alerts, feature requests, and stargazing spot submissions.
 - **In-App Feedback**: Submit spot suggestions and bug reports directly via the feedback modal or admin portal at `/admin/requests`.
 
 ---
