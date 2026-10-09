@@ -1,0 +1,93 @@
+name: CI & Deployment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, intl, gd, exif, iconv
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Check Code Style (Laravel Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Build Frontend Assets
+        run: npm run build
+
+      - name: Verify Compiled Assets Are Committed
+        run: |
+          git diff --exit-code public/build || (echo "::error::Compiled assets in public/build are not up to date with source files. Run 'npm run build' and commit public/build." && exit 1)
+
+      - name: Prepare Testing Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Test Suite (PHPUnit)
+        run: php artisan test
+
+  deploy:
+    name: Deploy to Hosting Site
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Remote Deployment via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            TARGET_DIR="${{ secrets.DEPLOY_PATH || 'astronotify.org' }}"
+            cd "$TARGET_DIR"
+            if [ -f deploy.sh ]; then
+              bash deploy.sh
+            else
+              git fetch origin main
+              git reset --hard origin/main
+              bash deploy.sh
+            fi

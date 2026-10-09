@@ -60,9 +60,10 @@
 - [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
 
 ## Workflows and other plans
-- [x] M **Use local gitea server, and mirror to github and gitlab** — switched `origin` to local Gitea instance with push mirroring configured to GitHub
+- [x] M **Dual-remote setup with GitHub primary and Gitea local mirror** — GitHub configured as primary `origin` fetch with dual-push to GitHub and Gitea; deleted conflicting Gitea push mirror
 - [x] M **Auto lint workflows** — configured `pint.json` preset/exclusions, formatted codebase, and added Gitea Actions workflow at `.gitea/workflows/lint.yaml`
 - [ ] M **Build android app and submit updates to play store** — paused pending release signing key generation and SHA-256 fingerprint in assetlinks.json
 - [ ] M **Auto backup sql db and files to remote storage** — managed via hosting backups
 - [x] M **Implement proper sitemap, and submit to search engines** — dynamic cached `/sitemap.xml` covering core pages, 100+ curated dark-sky spots, and upcoming passes; updated robots.txt with disallows and sitemap URL
 - [x] M **Easy migrate to S3 if storage gets too big on hosting** — installed `league/flysystem-aws-s3-v3` (^3.0); s3 disk configured in `config/filesystems.php`
+- [x] H **Automated GitHub Actions CI/CD & Deploy on PR Merge** — configured `.github/workflows/ci-cd.yml` with Pint/build/test checks and SSH deployment to `astronotify.org` on merge; created server `deploy.sh` and `composer check` command
