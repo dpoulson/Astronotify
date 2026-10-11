@@ -72,6 +72,7 @@ class ISSTransitCalculator
 
         $forecastDays = (int) Setting::get('forecast_days', 7);
         $limitDeg = (float) Setting::get('conjunction_threshold', 0.75);
+        $minAltitude = (float) Setting::get('transit_min_altitude', 5.0);
         $startJD = Predict_Time::get_current_daynum();
 
         // Load existing upcoming transit records to preserve notification timestamps
@@ -134,13 +135,17 @@ class ISSTransitCalculator
                 $unix = Predict_Time::daynum2unix($t);
                 $date = new DateTime('@'.round($unix));
 
+                $satEl = $sat->el + ($sat->el > 0 ? SunCalc::getRefractionDegrees($sat->el) : 0.0);
+                $satAz = $sat->az;
+
                 foreach ($targetData as $type => &$data) {
                     $pos = ($data['posCallback'])($date);
-                    $sep = self::calculateSeparation($sat->el, $sat->az, $pos['altitude'], $pos['azimuth']);
+                    $sep = self::calculateSeparation($satEl, $satAz, $pos['altitude'], $pos['azimuth']);
                     if ($sep < $data['minSep']) {
                         $data['minSep'] = $sep;
                         $data['minTime'] = $t;
                         $data['minAlt'] = $pos['altitude'];
+                        $data['minAltGeometric'] = $pos['altitude_geometric'] ?? $pos['altitude'];
                         $data['minAz'] = $pos['azimuth'];
                     }
                 }
@@ -163,12 +168,15 @@ class ISSTransitCalculator
 
                         $unix = Predict_Time::daynum2unix($t);
                         $date = new DateTime('@'.round($unix));
+                        $satEl = $sat->el + ($sat->el > 0 ? SunCalc::getRefractionDegrees($sat->el) : 0.0);
+                        $satAz = $sat->az;
                         $pos = ($data['posCallback'])($date);
-                        $sep = self::calculateSeparation($sat->el, $sat->az, $pos['altitude'], $pos['azimuth']);
+                        $sep = self::calculateSeparation($satEl, $satAz, $pos['altitude'], $pos['azimuth']);
                         if ($sep < $data['minSep']) {
                             $data['minSep'] = $sep;
                             $data['minTime'] = $t;
                             $data['minAlt'] = $pos['altitude'];
+                            $data['minAltGeometric'] = $pos['altitude_geometric'] ?? $pos['altitude'];
                             $data['minAz'] = $pos['azimuth'];
                         }
                     }
@@ -178,7 +186,10 @@ class ISSTransitCalculator
 
             // Record transits / conjunctions meeting user thresholds and above horizon
             foreach ($targetData as $type => $data) {
-                if ($data['minTime'] !== null && $data['minSep'] <= $limitDeg && $data['minAlt'] > 0) {
+                if ($data['minTime'] !== null
+                    && $data['minSep'] <= $limitDeg
+                    && $data['minAlt'] >= $minAltitude
+                    && ($data['minAltGeometric'] ?? $data['minAlt']) > 0) {
                     // Generate fine path points for orbital diagram (±30s around transit at 2s intervals)
                     $pathPoints = [];
                     $startPath = max($pass->aos, $data['minTime'] - (30.0 / 86400.0));
@@ -195,10 +206,11 @@ class ISSTransitCalculator
                         $unix = Predict_Time::daynum2unix($t);
                         $date = new DateTime('@'.round($unix));
                         $pos = ($data['posCallback'])($date);
+                        $satEl = $sat->el + ($sat->el > 0 ? SunCalc::getRefractionDegrees($sat->el) : 0.0);
 
                         $pathPoints[] = [
                             'dx' => round($sat->az - $pos['azimuth'], 4),
-                            'dy' => round($sat->el - $pos['altitude'], 4),
+                            'dy' => round($satEl - $pos['altitude'], 4),
                         ];
                     }
 
@@ -322,7 +334,7 @@ class ISSTransitCalculator
      * @param  float|int  $az2  Azimuth of object 2 (degrees).
      * @return float Angular separation in degrees.
      */
-    private static function calculateSeparation(float|int $el1, float|int $az1, float|int $el2, float|int $az2): float
+    public static function calculateSeparation(float|int $el1, float|int $az1, float|int $el2, float|int $az2): float
     {
         $r_el1 = deg2rad($el1);
         $r_el2 = deg2rad($el2);

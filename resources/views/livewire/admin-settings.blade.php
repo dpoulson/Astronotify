@@ -38,6 +38,13 @@
                         </div>
 
                         <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2" title="Minimum observable transit altitude in degrees to exclude horizon obstructions">Minimum Transit Altitude (°)</label>
+                            <input type="number" step="0.5" wire:model="transit_min_altitude" class="w-full bg-slate-800 border border-slate-600 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500" min="0.0" max="80.0">
+                            <p class="text-xs text-slate-400 mt-2">Passes occurring below this elevation are excluded to avoid terrain obstructions and extreme atmospheric haze.</p>
+                            @error('transit_min_altitude') <span class="text-red-400 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2" title="Maximum observing locations allowed per regular user">Max Locations Per User</label>
                             <input type="number" wire:model="max_locations_per_user" class="w-full bg-slate-800 border border-slate-600 rounded-xl text-white focus:ring-purple-500 focus:border-purple-500" min="1" max="100">
                             <p class="text-xs text-slate-400 mt-2">Caps how many observing sites standard users can track to protect Open-Meteo API quotas.</p>
