@@ -40,6 +40,13 @@ class AdminSettings extends Component
     public $conjunction_threshold = 0.75;
 
     /**
+     * Minimum observable transit altitude in degrees.
+     *
+     * @var float|string
+     */
+    public $transit_min_altitude = 5.0;
+
+    /**
      * Maximum observing locations allowed per regular user.
      *
      * @var int|string
@@ -64,6 +71,7 @@ class AdminSettings extends Component
         $this->forecast_days = (int) Setting::get('forecast_days', 7);
         $this->grouping_decimal_places = (int) Setting::get('grouping_decimal_places', 1);
         $this->conjunction_threshold = (float) Setting::get('conjunction_threshold', 0.75);
+        $this->transit_min_altitude = (float) Setting::get('transit_min_altitude', 5.0);
         $this->max_locations_per_user = (int) Setting::get('max_locations_per_user', 10);
         $this->discord_feedback_webhook_url = (string) Setting::get('discord_feedback_webhook_url', '');
         $this->discord_invite_url = (string) Setting::get('discord_invite_url', 'https://discord.gg/UuwaXjRjZU');
@@ -78,6 +86,7 @@ class AdminSettings extends Component
             'forecast_days' => 'required|integer|min:1|max:16',
             'grouping_decimal_places' => 'required|integer|min:0|max:4',
             'conjunction_threshold' => 'required|numeric|min:0.01|max:5.0',
+            'transit_min_altitude' => 'required|numeric|min:0.0|max:80.0',
             'max_locations_per_user' => 'required|integer|min:1|max:100',
             'discord_feedback_webhook_url' => 'nullable|url|max:255',
             'discord_invite_url' => 'required|url|max:255',
@@ -86,6 +95,7 @@ class AdminSettings extends Component
         Setting::set('forecast_days', $this->forecast_days);
         Setting::set('grouping_decimal_places', $this->grouping_decimal_places);
         Setting::set('conjunction_threshold', $this->conjunction_threshold);
+        Setting::set('transit_min_altitude', $this->transit_min_altitude);
         Setting::set('max_locations_per_user', $this->max_locations_per_user);
         Setting::set('discord_feedback_webhook_url', $this->discord_feedback_webhook_url);
         Setting::set('discord_invite_url', $this->discord_invite_url);

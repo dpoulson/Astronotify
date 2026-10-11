@@ -6,6 +6,8 @@
 - [x] M **Test notification button** — send a test email from the location card to confirm delivery is working
 - [x] H **Unsubscribe / re-subscribe link** in email footers so users can opt out without logging in
 - [x] H **Notification deduplication & overcast suppression** — track `notified_at` on transits and weather conditions; suppress transit alerts when overcast (≥90% cloud cover) with dashboard warnings
+- [ ] M **User Discord & Matrix webhook alerts** — allow users to configure Discord webhook URLs or Matrix room endpoints per location to receive stargazing and transit alerts directly alongside email
+- [ ] L **ntfy.sh mobile push integration** — zero-account, lightweight push notifications via configurable ntfy topic URLs
 
 ## 🛠️ Admin
 - [ ] L **Fix stats / metrics** — verify system_metrics and daily_metrics are incrementing correctly; display graphs on admin dashboard
@@ -32,6 +34,7 @@
 - [x] L **Path point density** — the coarse 10-second sampling gives very few path points for fast-moving ISS passes; consider a finer pass (~2s) within ±30s of the closest approach to get a more accurate chord
 - [x] M **Conjunction threshold setting** — currently hard-coded at 0.75°; expose this in the admin settings page
 - [x] H **ISS pass schedule view** — a simple table of all upcoming passes (not just transits) for each location with AOS/LOS time and max elevation
+- [x] H **Transit altitude threshold and refraction alignment** — enforce configurable minimum transit altitude (`transit_min_altitude`, default 5.0°) and align atmospheric refraction across ISS and celestial bodies to prevent sub-horizon false conjunctions
 - [x] L **Hardcoded values in SunCalc** — There are a lot of hardcoded values in SunCalc.php functions, should these be replaced with named constants?
 
 ## 🌤️ Weather
@@ -57,7 +60,12 @@
 - [ ] M **Embeddable Club Widget (`<script>` / `<iframe>`)** — lightweight embeddable widget for local astronomical societies displaying tonight's viewing index and next ISS transit with backlink to Astronotify
 - [x] H **Community Support & Feedback System with Discord Integration** — in-app modal for dark-sky spot suggestions, feature requests, and bug reports; real-time Discord webhook embed alerts; official Discord community links (https://discord.gg/UuwaXjRjZU) with role verification onboarding notices; dedicated admin queue at `/admin/requests` with 1-click spot promotion
 - [ ] M **Astronomy Society Discord / Matrix / Telegram Webhooks** — automated bot dispatcher to broadcast daily viewing conditions and transit alerts directly into club chats
-- [ ] L **Astrophotography Transit Photo Showcase & Equipment Logs** — community gallery where users submit images captured during predicted transits along with camera/telescope setups for authentic social proof
+- [ ] M **Post-Pass Photo Capture Submission on Transit Permalinks** — when `$isPast` is true on `/transit/{public_token}`, display a photo upload and observation log form (equipment, camera, telescope, focal length, shutter)
+- [ ] M **Astrophotography Transit Photo Showcase & Equipment Logs** — public gallery (`/gallery`) showcasing verified community captures linked to modeled pass telemetry for social proof
+- [ ] M **Shareable Pass Telemetry Graphic Generator** — downloadable or dynamic image card combining transit chord diagram, duration, coordinates, and Astronotify watermark for sharing to forums/social media
+- [ ] L **Mastodon & Bluesky Share Buttons** — add one-click share intents on public transit pass pages alongside Twitter and WhatsApp
+- [ ] M **ActivityPub Bot Actor (`@bot@astronotify.org`)** — implement `.well-known/webfinger` and outbox endpoint to publish upcoming transits and dark-sky forecasts directly to the Fediverse (Mastodon, Pixelfed, Akkoma)
+- [ ] L **Pixelfed / ActivityPub Astrophotography Federation** — federate approved transit capture photos as `Create(Image)` objects with equipment metadata so Fediverse users can discover and boost captures
 
 ## Workflows and other plans
 - [x] M **Dual-remote setup with GitHub primary and Gitea local mirror** — GitHub configured as primary `origin` fetch with dual-push to GitHub and Gitea; deleted conflicting Gitea push mirror

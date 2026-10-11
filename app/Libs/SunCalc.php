@@ -123,6 +123,20 @@ class SunCalc
     }
 
     /**
+     * Calculates atmospheric refraction in degrees for a given altitude in degrees.
+     */
+    public static function getRefractionDegrees(float $altitudeDegrees): float
+    {
+        if ($altitudeDegrees <= 0) {
+            return 0.0;
+        }
+
+        $h = $altitudeDegrees * self::RAD;
+
+        return self::astroRefraction($h) / self::RAD;
+    }
+
+    /**
      * Calculates spherical coordinates (RA/Dec) for the Sun.
      */
     private static function sunCoords(float $d): array
@@ -156,10 +170,12 @@ class SunCalc
         $c = self::sunCoords(self::toDaysTT($d));
         $H = self::siderealTime($d, $lw) - $c['ra'];
         $h = self::altitude($H, $phi, $c['dec']);
+        $refraction = $h > 0 ? self::astroRefraction($h) : 0.0;
 
         return [
             'azimuth' => self::azimuth($H, $phi, $c['dec']),
-            'altitude' => ($h + self::astroRefraction($h)) / self::RAD,
+            'altitude' => ($h + $refraction) / self::RAD,
+            'altitude_geometric' => $h / self::RAD,
         ];
     }
 
@@ -287,10 +303,12 @@ class SunCalc
 
         $hGeo = self::altitude($H, $phi, $c['dec']);
         $h = $hGeo - asin(self::EARTH_RADIUS / $c['dist'] * cos($hGeo));
+        $refraction = $h > 0 ? self::astroRefraction($h) : 0.0;
 
         return [
             'azimuth' => self::azimuth($H, $phi, $c['dec']),
-            'altitude' => ($h + self::astroRefraction($h)) / self::RAD,
+            'altitude' => ($h + $refraction) / self::RAD,
+            'altitude_geometric' => $h / self::RAD,
             'distance' => $c['dist'],
         ];
     }
