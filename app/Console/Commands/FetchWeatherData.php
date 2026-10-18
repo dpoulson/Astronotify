@@ -52,7 +52,7 @@ class FetchWeatherData extends Command
 
         // Load configuration parameters
         $groupingDecimals = (int) Setting::get('grouping_decimal_places', 1);
-        $forecastDays = (int) Setting::get('forecast_days', 7);
+        $forecastDays = max(1, min((int) Setting::get('forecast_days', 7), 7));
 
         $userAlerts = [];
 
@@ -69,8 +69,8 @@ class FetchWeatherData extends Command
             // Track API metrics
             $this->recordApiCallMetric();
 
-            // Open-Meteo free tier caps at 16 days. Buffer +2 for sunrise/sunset lookahead.
-            $apiDays = min($forecastDays, 14) + 2;
+            // Weather forecast window is capped at 7 days. Buffer +2 for sunrise/sunset lookahead.
+            $apiDays = min($forecastDays, 7) + 2;
 
             $response = Http::get('https://api.open-meteo.com/v1/forecast', [
                 'latitude' => $first->latitude,
@@ -108,8 +108,9 @@ class FetchWeatherData extends Command
                 }
             }
 
-            // Loop through configured nights (capped at 14 nights)
-            $nightCount = min($forecastDays, 14);
+            // Loop through configured nights (capped at 7 nights)
+            $nightCount = min($forecastDays, 7);
+            $processedDates = [];
             for ($dayIndex = 0; $dayIndex < $nightCount; $dayIndex++) {
                 $sunsetStr = $data['daily']['sunset'][$dayIndex] ?? null;
                 $sunriseStr = $data['daily']['sunrise'][$dayIndex + 1] ?? null;
@@ -121,6 +122,7 @@ class FetchWeatherData extends Command
                 $sunset = Carbon::parse($sunsetStr);
                 $sunrise = Carbon::parse($sunriseStr);
                 $dateStr = $sunset->toDateString();
+                $processedDates[] = $dateStr;
                 $nightLength = $sunset->diffInHours($sunrise);
 
                 // Cache hourly arrays for this night slice
@@ -180,6 +182,12 @@ class FetchWeatherData extends Command
                         ];
                     }
                 }
+            }
+
+            if (! empty($processedDates)) {
+                WeatherCondition::whereIn('location_id', $group->pluck('id'))
+                    ->whereDate('date', '>', max($processedDates))
+                    ->delete();
             }
 
             // Refresh cloud cover predictions on upcoming ISS transits for this location

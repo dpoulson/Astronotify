@@ -688,9 +688,9 @@
                             </div>
                         </div>
 
-                        <!-- 7-Day Forecast Section -->
+                        <!-- Weather Forecast Section -->
                         <div x-data="{ activeDay: null }" class="border-t border-slate-700/60 pt-4">
-                            <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">📅 7-Day Forecast</h4>
+                            <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">📅 {{ $forecastDays ?? 7 }}-Day Forecast</h4>
                             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                                 @forelse($location->conditions as $index => $cond)
                                     @php
@@ -828,7 +828,7 @@
                             <div x-show="open" x-collapse x-cloak class="mt-3">
                                 @if(isset($loadedPasses[$location->id]))
                                     @if(empty($loadedPasses[$location->id]))
-                                        <div class="text-xs text-slate-500 py-2">No upcoming visible passes in the next 7 days.</div>
+                                        <div class="text-xs text-slate-500 py-2">No upcoming visible passes in the next {{ $transitDays ?? 14 }} days.</div>
                                     @else
                                         <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/40">
                                             <table class="w-full text-left border-collapse">

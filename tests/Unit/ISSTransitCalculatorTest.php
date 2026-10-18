@@ -85,6 +85,8 @@ class ISSTransitCalculatorTest extends TestCase
         $calculator = new ISSTransitCalculator;
         $results = $calculator->calculateForLocation($location);
 
+        $this->assertIsArray($results);
+
         // Verify that no transit is created with altitude < 5.0 degrees
         foreach ($results as $transit) {
             $this->assertGreaterThanOrEqual(5.0, $transit['altitude_degrees']);
@@ -94,5 +96,41 @@ class ISSTransitCalculatorTest extends TestCase
         foreach ($dbTransits as $transit) {
             $this->assertGreaterThanOrEqual(5.0, (float) $transit->altitude_degrees);
         }
+    }
+
+    public function test_calculator_uses_transit_days_independently_of_forecast_days(): void
+    {
+        // Set a generous conjunction threshold so passes within the window produce conjunctions
+        Setting::set('conjunction_threshold', 180.0);
+        Setting::set('transit_min_altitude', 0.0);
+        Setting::set('forecast_days', 5);
+        Setting::set('transit_days', 1);
+
+        $user = User::factory()->create();
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Observatory',
+            'latitude' => 51.5,
+            'longitude' => -0.1,
+            'elevation' => 50,
+            'is_active' => true,
+            'notify_iss_sun_transit' => true,
+            'notify_iss_moon_transit' => false,
+            'notify_stargazing_alerts' => true,
+        ]);
+
+        $tle = "ISS (ZARYA)\n1 25544U 98067A   26188.50835634  .00005806  00000+0  11369-3 0  9990\n2 25544  51.6304 199.5144 0006687 267.6545  92.3678 15.48933372574901";
+        Http::fake([
+            'celestrak.org/*' => Http::response($tle, 200),
+        ]);
+        Cache::forget('iss_tle_data');
+
+        $calculator = new ISSTransitCalculator;
+        $resultsOneDay = $calculator->calculateForLocation($location);
+
+        Setting::set('transit_days', 14);
+        $resultsFourteenDays = $calculator->calculateForLocation($location);
+
+        $this->assertGreaterThan(count($resultsOneDay), count($resultsFourteenDays));
     }
 }

@@ -19,11 +19,18 @@ class AdminSettings extends Component
     use AuthorizesAdminAccess;
 
     /**
-     * Number of forecast days to request from Open-Meteo.
+     * Number of weather forecast days to evaluate from Open-Meteo (max 7).
      *
      * @var int|string
      */
     public $forecast_days = 7;
+
+    /**
+     * Number of days ahead to calculate ISS solar and lunar transits (max 14).
+     *
+     * @var int|string
+     */
+    public $transit_days = 14;
 
     /**
      * Number of decimal places used to bin geographic coordinates.
@@ -68,7 +75,8 @@ class AdminSettings extends Component
      */
     public function mount(): void
     {
-        $this->forecast_days = (int) Setting::get('forecast_days', 7);
+        $this->forecast_days = max(1, min((int) Setting::get('forecast_days', 7), 7));
+        $this->transit_days = max(1, min((int) Setting::get('transit_days', 14), 14));
         $this->grouping_decimal_places = (int) Setting::get('grouping_decimal_places', 1);
         $this->conjunction_threshold = (float) Setting::get('conjunction_threshold', 0.75);
         $this->transit_min_altitude = (float) Setting::get('transit_min_altitude', 5.0);
@@ -83,7 +91,8 @@ class AdminSettings extends Component
     public function save(): void
     {
         $this->validate([
-            'forecast_days' => 'required|integer|min:1|max:16',
+            'forecast_days' => 'required|integer|min:1|max:7',
+            'transit_days' => 'required|integer|min:1|max:14',
             'grouping_decimal_places' => 'required|integer|min:0|max:4',
             'conjunction_threshold' => 'required|numeric|min:0.01|max:5.0',
             'transit_min_altitude' => 'required|numeric|min:0.0|max:80.0',
@@ -93,6 +102,7 @@ class AdminSettings extends Component
         ]);
 
         Setting::set('forecast_days', $this->forecast_days);
+        Setting::set('transit_days', $this->transit_days);
         Setting::set('grouping_decimal_places', $this->grouping_decimal_places);
         Setting::set('conjunction_threshold', $this->conjunction_threshold);
         Setting::set('transit_min_altitude', $this->transit_min_altitude);
