@@ -242,8 +242,10 @@ class LocationManager extends Component
         $qth->lon = (float) $location->longitude;
         $qth->alt = (float) ($location->elevation ?? 0.0);
 
+        $transitDays = max(1, min((int) Setting::get('transit_days', 14), 14));
+
         try {
-            $passes = $predict->get_passes($sat, $qth, $startJD, 7);
+            $passes = $predict->get_passes($sat, $qth, $startJD, $transitDays);
         } catch (\Exception $e) {
             $this->loadedPasses[$locationId] = [];
 
@@ -301,6 +303,9 @@ class LocationManager extends Component
 
     public function render()
     {
+        $forecastDays = max(1, min((int) Setting::get('forecast_days', 7), 7));
+        $transitDays = max(1, min((int) Setting::get('transit_days', 14), 14));
+
         $upcomingNights = WeatherCondition::with('location')
             ->whereHas('location', function ($q) {
                 $q->where('user_id', Auth::id());
@@ -319,11 +324,13 @@ class LocationManager extends Component
             ->get();
 
         return view('livewire.location-manager', [
-            'locations' => Auth::user()->locations()->with(['conditions' => function ($q) {
-                $q->where('date', '>=', today()->toDateString())->orderBy('date', 'asc');
+            'locations' => Auth::user()->locations()->with(['conditions' => function ($q) use ($forecastDays) {
+                $q->where('date', '>=', today()->toDateString())->orderBy('date', 'asc')->limit($forecastDays);
             }])->get(),
             'upcomingNights' => $upcomingNights,
             'upcomingTransits' => $upcomingTransits,
+            'forecastDays' => $forecastDays,
+            'transitDays' => $transitDays,
         ]);
     }
 }

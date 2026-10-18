@@ -7,6 +7,7 @@ use App\Mail\ISSTransitSummary;
 use App\Mail\StargazingSummary;
 use App\Models\ISSTransit;
 use App\Models\Location;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\WeatherCondition;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -100,8 +101,8 @@ class NotificationDeduplicationTest extends TestCase
             'is_active' => true,
         ]);
 
-        // Set 100% overcast cloud cover forecast for all days
-        for ($d = 0; $d < 8; $d++) {
+        // Set 100% overcast cloud cover forecast for all days in the 14-day transit window
+        for ($d = 0; $d < 15; $d++) {
             $date = now()->addDays($d);
             $hourlyClouds = [];
             for ($h = 0; $h < 24; $h++) {
@@ -152,8 +153,8 @@ class NotificationDeduplicationTest extends TestCase
             'is_active' => true,
         ]);
 
-        // Set clear 15% cloud cover forecast for all days
-        for ($d = 0; $d < 8; $d++) {
+        // Set clear 15% cloud cover forecast for all days in the 14-day transit window
+        for ($d = 0; $d < 15; $d++) {
             $date = now()->addDays($d);
             $hourlyClouds = [];
             for ($h = 0; $h < 24; $h++) {
@@ -214,5 +215,100 @@ class NotificationDeduplicationTest extends TestCase
         Livewire::test(LocationManager::class)
             ->assertSee('⚠️ Cloudy (100%)')
             ->assertSee('Poor viewing: 100% cloud');
+    }
+
+    public function test_weather_forecast_window_is_decoupled_from_transit_calculation_window(): void
+    {
+        Mail::fake();
+
+        Setting::set('forecast_days', 5);
+        Setting::set('transit_days', 14);
+
+        $user = User::factory()->create();
+        $location = Location::create([
+            'user_id' => $user->id,
+            'name' => 'Dark Sky Site',
+            'latitude' => 51.5,
+            'longitude' => -0.1,
+            'min_night_length_hours' => 4,
+            'min_clear_hours' => 2,
+            'max_wind_speed' => 25,
+            'max_cloud_cover' => 30,
+            'notify_stargazing_alerts' => false,
+            'is_active' => true,
+        ]);
+
+        // Create two transits: one within the 5-day weather forecast window (day 2), one in the 14-day transit window (day 10)
+        $nearTransit = ISSTransit::create([
+            'location_id' => $location->id,
+            'type' => 'sun',
+            'time' => now()->startOfDay()->addDays(2)->setTime(12, 0),
+            'separation_degrees' => 0.15,
+            'altitude_degrees' => 35.0,
+            'azimuth_degrees' => 170.0,
+            'is_exact_transit' => true,
+            'cloud_cover_percent' => null,
+        ]);
+
+        $farTransit = ISSTransit::create([
+            'location_id' => $location->id,
+            'type' => 'moon',
+            'time' => now()->startOfDay()->addDays(10)->setTime(12, 0),
+            'separation_degrees' => 0.20,
+            'altitude_degrees' => 42.0,
+            'azimuth_degrees' => 185.0,
+            'is_exact_transit' => true,
+            'cloud_cover_percent' => null,
+        ]);
+
+        // Build 10 days of mock Open-Meteo response data; weather:fetch should only evaluate 5 nights
+        $sunsets = [];
+        $sunrises = [];
+        $hourlyTimes = [];
+        $hourlyClouds = [];
+        $hourlyWinds = [];
+
+        for ($d = 0; $d < 10; $d++) {
+            $day = now()->startOfDay()->addDays($d);
+            $sunsets[] = $day->copy()->setTime(20, 0)->toIso8601String();
+            $sunrises[] = $day->copy()->setTime(6, 0)->toIso8601String();
+
+            for ($h = 0; $h < 24; $h++) {
+                $t = $day->copy()->addHours($h);
+                $hourlyTimes[] = $t->format('Y-m-d\TH:00');
+                $hourlyClouds[] = 22;
+                $hourlyWinds[] = 8;
+            }
+        }
+
+        Http::fake([
+            'api.open-meteo.com/*' => Http::response([
+                'timezone' => 'UTC',
+                'daily' => [
+                    'sunset' => $sunsets,
+                    'sunrise' => $sunrises,
+                ],
+                'hourly' => [
+                    'time' => $hourlyTimes,
+                    'cloud_cover' => $hourlyClouds,
+                    'wind_speed_10m' => $hourlyWinds,
+                ],
+            ], 200),
+        ]);
+
+        $this->artisan('weather:fetch')->assertSuccessful();
+
+        // Verify Open-Meteo was queried with forecast_days = 5 + 2 = 7 (not 14 + 2)
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), 'api.open-meteo.com')
+                && $request['forecast_days'] === 7;
+        });
+
+        // Only 5 nights of WeatherCondition records should be stored
+        $this->assertEquals(5, WeatherCondition::where('location_id', $location->id)->count());
+
+        // Near transit (day 2) has cloud cover populated; far transit (day 10) remains null (pending weather window)
+        $this->assertEquals(22, $nearTransit->fresh()->cloud_cover_percent);
+        $this->assertNull($farTransit->fresh()->cloud_cover_percent);
     }
 }

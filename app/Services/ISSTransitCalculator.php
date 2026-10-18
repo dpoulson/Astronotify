@@ -70,7 +70,7 @@ class ISSTransitCalculator
         $sat = new Predict_Sat($tle);
         $predict = new Predict;
 
-        $forecastDays = (int) Setting::get('forecast_days', 7);
+        $transitDays = max(1, min((int) Setting::get('transit_days', 14), 14));
         $limitDeg = (float) Setting::get('conjunction_threshold', 0.75);
         $minAltitude = (float) Setting::get('transit_min_altitude', 5.0);
         $startJD = Predict_Time::get_current_daynum();
@@ -87,7 +87,7 @@ class ISSTransitCalculator
         $qth->alt = (float) ($location->elevation ?? 0.0);
 
         try {
-            $passes = $predict->get_passes($sat, $qth, $startJD, $forecastDays);
+            $passes = $predict->get_passes($sat, $qth, $startJD, $transitDays);
         } catch (Exception $e) {
             Log::error("Failed to calculate passes for location {$location->name}: ".$e->getMessage());
 

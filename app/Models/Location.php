@@ -273,6 +273,8 @@ class Location extends Model
         $dateStr = $carbon->toDateString();
 
         $condition = $this->conditions()->whereDate('date', $dateStr)->first();
+        $isExactDateMatch = $condition !== null;
+
         if (! $condition) {
             $condition = $this->conditions()
                 ->whereBetween('date', [$carbon->copy()->subDay()->toDateString(), $carbon->copy()->addDay()->toDateString()])
@@ -300,10 +302,12 @@ class Location extends Model
             return (int) $clouds[$roundedUtcKey];
         }
 
-        // Try local hour format "HH:00"
-        $hourKey = $carbon->format('H:00');
-        if (isset($clouds[$hourKey])) {
-            return (int) $clouds[$hourKey];
+        // Try local hour format "HH:00" only when condition matches the exact date
+        if ($isExactDateMatch) {
+            $hourKey = $carbon->format('H:00');
+            if (isset($clouds[$hourKey])) {
+                return (int) $clouds[$hourKey];
+            }
         }
 
         return null;

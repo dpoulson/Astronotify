@@ -38,7 +38,7 @@
 - [x] L **Hardcoded values in SunCalc** — There are a lot of hardcoded values in SunCalc.php functions, should these be replaced with named constants?
 
 ## 🌤️ Weather
-- [ ] L **forecast_days admin cap warning** — the setting is currently 16 but Open-Meteo caps at 16 and we need +2 buffer, so we silently cap at 14 nights; surface this limit in the admin settings UI with a note
+- [x] L **Decouple weather forecast window from transit calculation window** — split `forecast_days` (capped at 5–7 days) from `transit_days` (up to 14 days / 2 weeks) in admin settings and backend services
 - [ ] L **Weather data browse page** — allow users to browse the full hourly forecast for upcoming nights (not just the 7-day card grid)
 - [x] M **Moon phase display** — show moon phase icon on each forecast day card (affects naked-eye astronomy)
 - [x] M **Light pollution overlay** — link to or embed a Bortle scale indicator for each location
