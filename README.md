@@ -1,6 +1,6 @@
 # Astronotify 🌌
 
-[![PHP Version](https://img.shields.io/badge/php-%5E8.3-blue.svg)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/php-%5E8.4-blue.svg)](https://www.php.net/)
 [![Laravel Framework](https://img.shields.io/badge/laravel-11.x%20%2F%2013.x-red.svg)](https://laravel.com/)
 [![Livewire](https://img.shields.io/badge/livewire-3.x-pink.svg)](https://livewire.laravel.com/)
 [![Tailwind CSS](https://img.shields.io/badge/tailwind-3.x-38bdf8.svg)](https://tailwindcss.com/)
@@ -40,7 +40,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **PHP** &ge; 8.3 with `pdo`, `sqlite3` or `pdo_mysql`, `curl`, and `mbstring` extensions
+- **PHP** &ge; 8.4 with `pdo`, `sqlite3` or `pdo_mysql`, `curl`, and `mbstring` extensions
 - **Composer** &ge; 2.2
 - **Node.js** &ge; 18 & **npm**
 
