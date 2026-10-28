@@ -37,6 +37,22 @@ echo "==> Pulling latest changes from ${REMOTE_NAME}/${BRANCH_NAME}..."
 git fetch "${REMOTE_NAME}" "${BRANCH_NAME}"
 git reset --hard "${REMOTE_NAME}/${BRANCH_NAME}"
 
+# Ensure web server executes PHP 8.4 via cPanel/LiteSpeed handler if ea-php84 exists
+if [ -f public/.htaccess ] && command -v ea-php84 &>/dev/null; then
+  if ! grep -q "application/x-httpd-ea-php84" public/.htaccess; then
+    echo "==> Configuring cPanel/LiteSpeed PHP 8.4 handler in public/.htaccess..."
+    cat << 'EOF' >> public/.htaccess
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php84” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php84 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
+EOF
+  fi
+fi
+
 # 3. Production PHP dependencies
 echo "==> Installing Composer dependencies..."
 if command -v "${COMPOSER_BIN}" &>/dev/null; then
