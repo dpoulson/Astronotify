@@ -88,10 +88,6 @@ jobs:
           script: |
             TARGET_DIR="${{ secrets.DEPLOY_PATH || 'astronotify.org' }}"
             cd "$TARGET_DIR"
-            if [ -f deploy.sh ]; then
-              bash deploy.sh
-            else
-              git fetch origin main
-              git reset --hard origin/main
-              bash deploy.sh
-            fi
+            git fetch origin main
+            git reset --hard origin/main
+            bash deploy.sh
